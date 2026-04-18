@@ -3,8 +3,16 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 return function (array $event) {
 
+    $profile_id = $event['pathParameters']['profile_id'] ?? null;
     $id = $event['pathParameters']['id'] ?? null;
     $body = json_decode($event['body'] ?? '', true);
+
+    if (empty($profile_id)) {
+        return [
+            'statusCode' => 400,
+            'body' => json_encode(['error' => 'Missing required profile_id'])
+        ];
+    }
 
     if (empty($id)) {
         return [
@@ -15,11 +23,12 @@ return function (array $event) {
         ];
     }
 
-    if (empty($body['status'])) {
+    if (!isset($body['status'])) {
         return [
             'statusCode' => 400,
             'body' => json_encode([
-                'error' => 'Missing required field: status'
+                'error' => 'Missing required field: status',
+                'payload' => $body
             ])
         ];
     }
@@ -27,7 +36,7 @@ return function (array $event) {
     try {
 
         $repository = new App\Common\Repositories\BatchRepository();
-        $batch = $repository->updateBatchStatus($id, $body['status']);
+        $batch = $repository->updateBatchStatus($profile_id, $id, $body['status']);
 
         if ($batch === null) {
             return [

@@ -1,5 +1,6 @@
 mead-recipe-create:
   handler: services/mead-recipe/create.php
+  runtime: php-84
   description: "Crea un nuevo usuario"
   events:
     - httpApi:
@@ -9,6 +10,7 @@ mead-recipe-create:
 
 mead-recipe-choose-brix:
   handler: services/mead-recipe/choose-brix.php
+  runtime: php-84
   description: "Calcula opciones de mosto según kg de miel"
   events:
     - httpApi:

@@ -1,8 +1,8 @@
 {
   "name": "vaco",
   "scripts": {
-    "deploy:dev": "export STAGE=dev && AWS_PROFILE=mauloasan serverless deploy --stage dev",
-    "deploy:demo": "export STAGE=demo && AWS_PROFILE=mauloasan serverless deploy --stage demo",
-    "deploy:prod": "export STAGE=prod && AWS_PROFILE=mauloasan serverless deploy --stage prod"
+    "deploy:dev": "export STAGE=dev && AWS_PROFILE=mauloasan COGNITO_USER_POOL_ID=\"us-east-1_bC97RgnDu\" COGNITO_CLIENT_ID=\"2grs11ej6uc28p9b606hm46p1k\" serverless deploy --stage dev",
+    "deploy:demo": "export STAGE=demo && AWS_PROFILE=mauloasan COGNITO_USER_POOL_ID=\"us-east-1_bC97RgnDu\" COGNITO_CLIENT_ID=\"2grs11ej6uc28p9b606hm46p1k\" serverless deploy --stage demo",
+    "deploy:prod": "export STAGE=prod && AWS_PROFILE=mauloasan COGNITO_USER_POOL_ID=\"us-east-1_tjDCcWgDv\" COGNITO_CLIENT_ID=\"h843s7bqe0rbbojrea6l4jg58\" serverless deploy --stage prod"
   }
 }

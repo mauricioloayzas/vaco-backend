@@ -61,6 +61,7 @@ provider:
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_PROFILES}/index/url_name-index"
 
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}/index/profile_id-index"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}/index/code-index"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}/index/status-created_at-index"
 
@@ -88,3 +89,4 @@ functions:
   - ${file(serverless-config/batch-mead-detail.yml)}
   - ${file(serverless-config/fermentation-log.yml)}
   - ${file(serverless-config/mead-recipe.yml)}
+  - ${file(serverless-config/helper.yml)}

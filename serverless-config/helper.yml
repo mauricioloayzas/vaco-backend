@@ -1,0 +1,69 @@
+helper-get-batch-statuses:
+  handler: services/helper/get-batch-statuses.php
+  runtime: php-84
+  description: "Obtiene los estados de lote disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/batch-statuses
+        authorizer: cognitoAuthorizer
+
+helper-get-batch-types:
+  handler: services/helper/get-batch-types.php
+  runtime: php-84
+  description: "Obtiene los tipos de lote disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/batch-types
+        authorizer: cognitoAuthorizer
+
+helper-get-metabisulfite-types:
+  handler: services/helper/get-metabisulfite-types.php
+  runtime: php-84
+  description: "Obtiene los tipos de metabisulfito disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/metabisulfite-types
+        authorizer: cognitoAuthorizer
+
+helper-get-nutrient-types:
+  handler: services/helper/get-nutrient-types.php
+  runtime: php-84
+  description: "Obtiene los tipos de nutriente disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/nutrient-types
+        authorizer: cognitoAuthorizer
+
+helper-get-sweetness-profiles:
+  handler: services/helper/get-sweetness-profiles.php
+  runtime: php-84
+  description: "Obtiene los perfiles de dulzor disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/sweetness-profiles
+        authorizer: cognitoAuthorizer
+
+helper-get-yeast-strains:
+  handler: services/helper/get-yeast-strains.php
+  runtime: php-84
+  description: "Obtiene las cepas de levadura disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/yeast-strains
+        authorizer: cognitoAuthorizer
+
+helper-get-yeast-types:
+  handler: services/helper/get-yeast-types.php
+  runtime: php-84
+  description: "Obtiene los tipos de levadura disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/yeast-types
+        authorizer: cognitoAuthorizer

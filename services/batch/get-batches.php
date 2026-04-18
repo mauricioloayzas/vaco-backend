@@ -3,10 +3,19 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 return function (array $event) {
 
+    $profile_id = $event['pathParameters']['profile_id'] ?? null;
+
+    if (empty($profile_id)) {
+        return [
+            'statusCode' => 400,
+            'body' => json_encode(['error' => 'Missing required profile_id'])
+        ];
+    }
+
     try {
 
         $repository = new App\Common\Repositories\BatchRepository();
-        $batches = $repository->getBatches();
+        $batches = $repository->getBatches($profile_id);
 
         return [
             'statusCode' => 200,

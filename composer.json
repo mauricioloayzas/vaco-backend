@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=8.4",
-    "bref/bref": "^2.1",
+    "bref/bref": "^3.0",
     "aws/aws-sdk-php": "^3.200",
     "ramsey/uuid": "^4.9",
     "vlucas/phpdotenv": "^5.6",

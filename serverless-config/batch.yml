@@ -1,62 +1,69 @@
 batch-get-all:
   handler: services/batch/get-batches.php
+  runtime: php-84
   description: "Obtiene todos los lotes de un perfil"
   events:
     - httpApi:
         method: GET
-        path: profile/{profile_id}/batch
+        path: /profiles/{profile_id}/batch
         authorizer: cognitoAuthorizer
 
 batch-get:
   handler: services/batch/get-batch.php
+  runtime: php-84
   description: "Obtiene un lote por ID"
   events:
     - httpApi:
         method: GET
-        path: profile/{profile_id}/batch/{id}
+        path: /profiles/{profile_id}/batch/{id}
         authorizer: cognitoAuthorizer
 
 batch-get-by-code:
   handler: services/batch/get-batch-by-code.php
+  runtime: php-84
   description: "Obtiene un lote por código"
   events:
     - httpApi:
         method: GET
-        path: profile/{profile_id}/batch/code/{code}
+        path: /profiles/{profile_id}/batch/code/{code}
         authorizer: cognitoAuthorizer
 
 batch-create:
   handler: services/batch/create-batch.php
+  runtime: php-84
   description: "Crea un nuevo lote"
   events:
     - httpApi:
         method: POST
-        path: profile/{profile_id}/batch
+        path: /profiles/{profile_id}/batch
         authorizer: cognitoAuthorizer
 
 batch-update:
   handler: services/batch/update-batch.php
+  runtime: php-84
   description: "Actualiza un lote por ID"
   events:
     - httpApi:
         method: PUT
-        path: profile/{profile_id}/batch/{id}
+        path: /profiles/{profile_id}/batch/{id}
         authorizer: cognitoAuthorizer
 
 batch-update-status:
   handler: services/batch/update-batch-status.php
+  runtime: php-84
   description: "Actualiza el estado de un lote"
   events:
     - httpApi:
         method: PATCH
-        path: profile/{profile_id}/batch/{id}/status
+        path: /profiles/{profile_id}/batch/{id}/status
         authorizer: cognitoAuthorizer
 
 batch-delete:
   handler: services/batch/delete-batch.php
+  runtime: php-84
   description: "Elimina un lote por ID"
   events:
     - httpApi:
         method: DELETE
-        path: profile/{profile_id}/batch/{id}
+        path: /profiles/{profile_id}/batch/{id}
         authorizer: cognitoAuthorizer
