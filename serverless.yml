@@ -1,0 +1,90 @@
+service: vaco
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: provided.al2023
+
+  environment:
+    STAGE: ${opt:stage, 'dev'}
+    DYNAMODB_TABLE_PREFIX_VACO: vaco
+    DYNAMODB_TABLE_PREFIX_ORCHESTRATOR: orchestrator
+
+    DYNAMODB_TABLE_PROFILES: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_ORCHESTRATOR}_profiles
+
+    DYNAMODB_TABLE_BATCHES: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch
+    DYNAMODB_TABLE_BATCH_MEAD_DETAILS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_mead
+    DYNAMODB_TABLE_FERMENTATION_LOGS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_fermentation_log
+
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+        - X-Amz-Date
+        - X-Api-Key
+        - X-Amz-Security-Token
+      allowedMethods:
+        - OPTIONS
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+    authorizers:
+      cognitoAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: !Sub https://cognito-idp.${aws:region}.amazonaws.com/${self:provider.environment.COGNITO_USER_POOL_ID}
+        audience:
+          - ${self:provider.environment.COGNITO_CLIENT_ID}
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_PROFILES}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_PROFILES}/index/url_name-index"
+
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}/index/code-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCHES}/index/status-created_at-index"
+
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_MEAD_DETAILS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_MEAD_DETAILS}/index/batch_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_MEAD_DETAILS}/index/yeast_type-created_at-index"
+
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}/index/batch_id-recorded_at-index"
+
+plugins:
+    - ./vendor/bref/bref
+
+package:
+  patterns:
+    - 'package/**'
+    - 'services/**'
+    - 'vendor/**'
+    - '!node_modules/**'
+    - '!.git/**'
+
+# Definición de cada Microservicio (Función Lambda)
+functions:
+  - ${file(serverless-config/batch.yml)}
+  - ${file(serverless-config/batch-mead-detail.yml)}
+  - ${file(serverless-config/fermentation-log.yml)}
+  - ${file(serverless-config/mead-recipe.yml)}

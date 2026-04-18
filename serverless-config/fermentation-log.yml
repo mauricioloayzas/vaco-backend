@@ -1,0 +1,44 @@
+fermentation-log-get-by-batch:
+  handler: services/fermentation-log/get-fermentation-logs-by-batch-id.php
+  description: "Obtiene los registros de fermentación de un lote"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch/{batch_id}/fermentation-log
+        authorizer: cognitoAuthorizer
+
+fermentation-log-get:
+  handler: services/fermentation-log/get-fermentation-log.php
+  description: "Obtiene un registro de fermentación por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /fermentation-log/{id}
+        authorizer: cognitoAuthorizer
+
+fermentation-log-create:
+  handler: services/fermentation-log/create-fermentation-log.php
+  description: "Crea un registro de fermentación para un lote"
+  events:
+    - httpApi:
+        method: POST
+        path: /batch/{batch_id}/fermentation-log
+        authorizer: cognitoAuthorizer
+
+fermentation-log-update:
+  handler: services/fermentation-log/update-fermentation-log.php
+  description: "Actualiza un registro de fermentación por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /fermentation-log/{id}
+        authorizer: cognitoAuthorizer
+
+fermentation-log-delete:
+  handler: services/fermentation-log/delete-fermentation-log.php
+  description: "Elimina un registro de fermentación por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /fermentation-log/{id}
+        authorizer: cognitoAuthorizer

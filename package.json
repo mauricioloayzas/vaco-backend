@@ -1,0 +1,8 @@
+{
+  "name": "vaco",
+  "scripts": {
+    "deploy:dev": "export STAGE=dev && AWS_PROFILE=mauloasan serverless deploy --stage dev",
+    "deploy:demo": "export STAGE=demo && AWS_PROFILE=mauloasan serverless deploy --stage demo",
+    "deploy:prod": "export STAGE=prod && AWS_PROFILE=mauloasan serverless deploy --stage prod"
+  }
+}

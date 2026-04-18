@@ -1,0 +1,17 @@
+mead-recipe-create:
+  handler: services/mead-recipe/create.php
+  description: "Crea un nuevo usuario"
+  events:
+    - httpApi:
+        method: POST
+        path: /mead-recipe
+        authorizer: cognitoAuthorizer
+
+mead-recipe-choose-brix:
+  handler: services/mead-recipe/choose-brix.php
+  description: "Calcula opciones de mosto según kg de miel"
+  events:
+    - httpApi:
+        method: POST
+        path: /mead-recipe/choose-brix
+        authorizer: cognitoAuthorizer

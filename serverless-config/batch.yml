@@ -1,0 +1,62 @@
+batch-get-all:
+  handler: services/batch/get-batches.php
+  description: "Obtiene todos los lotes de un perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: profile/{profile_id}/batch
+        authorizer: cognitoAuthorizer
+
+batch-get:
+  handler: services/batch/get-batch.php
+  description: "Obtiene un lote por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: profile/{profile_id}/batch/{id}
+        authorizer: cognitoAuthorizer
+
+batch-get-by-code:
+  handler: services/batch/get-batch-by-code.php
+  description: "Obtiene un lote por código"
+  events:
+    - httpApi:
+        method: GET
+        path: profile/{profile_id}/batch/code/{code}
+        authorizer: cognitoAuthorizer
+
+batch-create:
+  handler: services/batch/create-batch.php
+  description: "Crea un nuevo lote"
+  events:
+    - httpApi:
+        method: POST
+        path: profile/{profile_id}/batch
+        authorizer: cognitoAuthorizer
+
+batch-update:
+  handler: services/batch/update-batch.php
+  description: "Actualiza un lote por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: profile/{profile_id}/batch/{id}
+        authorizer: cognitoAuthorizer
+
+batch-update-status:
+  handler: services/batch/update-batch-status.php
+  description: "Actualiza el estado de un lote"
+  events:
+    - httpApi:
+        method: PATCH
+        path: profile/{profile_id}/batch/{id}/status
+        authorizer: cognitoAuthorizer
+
+batch-delete:
+  handler: services/batch/delete-batch.php
+  description: "Elimina un lote por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: profile/{profile_id}/batch/{id}
+        authorizer: cognitoAuthorizer

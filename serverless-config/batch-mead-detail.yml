@@ -1,0 +1,44 @@
+batch-mead-detail-get-by-batch:
+  handler: services/batch-mead-detail/get-batch-mead-details-by-batch-id.php
+  description: "Obtiene los detalles de hidromiel de un lote"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch/{batch_id}/mead-detail
+        authorizer: cognitoAuthorizer
+
+batch-mead-detail-get:
+  handler: services/batch-mead-detail/get-batch-mead-detail.php
+  description: "Obtiene un detalle de hidromiel por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch-mead-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-mead-detail-create:
+  handler: services/batch-mead-detail/create-batch-mead-detail.php
+  description: "Crea el detalle de hidromiel para un lote"
+  events:
+    - httpApi:
+        method: POST
+        path: /batch/{batch_id}/mead-detail
+        authorizer: cognitoAuthorizer
+
+batch-mead-detail-update:
+  handler: services/batch-mead-detail/update-batch-mead-detail.php
+  description: "Actualiza un detalle de hidromiel por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /batch-mead-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-mead-detail-delete:
+  handler: services/batch-mead-detail/delete-batch-mead-detail.php
+  description: "Elimina un detalle de hidromiel por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /batch-mead-detail/{id}
+        authorizer: cognitoAuthorizer
