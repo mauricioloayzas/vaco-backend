@@ -4,6 +4,8 @@ namespace App\Common\Repositories;
 
 use Mauloasan\BobConstruye\DynamoDB\DynamoDbClientFactory;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
 use Mauloasan\BobConstruye\DynamoDB\Entities\Vaco\BatchEntity;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
@@ -93,6 +95,14 @@ class BatchRepository
     {
         $id = Uuid::uuid4()->toString();
 
+        if (BatchType::tryFrom($data['type']) === null) {
+            throw new \InvalidArgumentException('Invalid type provided.');
+        }
+
+        if (BatchSubtype::tryFrom($data['subtype']) === null) {
+            throw new \InvalidArgumentException('Invalid subtype provided.');
+        }
+
         if (BatchStatus::tryFrom($data['status'] ?? BatchStatus::BEGIN->value) === null) {
             throw new \InvalidArgumentException('Invalid status provided.');
         }
@@ -102,6 +112,8 @@ class BatchRepository
             'code'       => $data['code'],
             'name'       => $data['name'],
             'profile_id' => $profile_id,
+            'type'       => $data['type'],
+            'subtype'    => $data['subtype'],
             'status'     => $data['status'] ?? BatchStatus::BEGIN->value,
             'created_at' => date('c'),
             'updated_at' => null,

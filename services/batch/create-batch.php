@@ -6,7 +6,7 @@ return function (array $event) {
     $profile_id = $event['pathParameters']['profile_id'] ?? null;
     $body = json_decode($event['body'] ?? '', true);
 
-    $requiredFields = ['code', 'name'];
+    $requiredFields = ['code', 'name', 'type', 'subtype'];
     foreach ($requiredFields as $field) {
         if (!isset($body[$field])) {
             return [

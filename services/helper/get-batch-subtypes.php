@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
 
 return function (array $event) {
 
@@ -10,7 +10,7 @@ return function (array $event) {
         $data = array_map(fn($case) => [
             'value' => $case->value,
             'label' => $case->name,
-        ], BatchType::cases());
+        ], BatchSubtype::cases());
 
         return [
             'statusCode' => 200,

@@ -18,6 +18,16 @@ helper-get-batch-types:
         path: /helper/batch-types
         authorizer: cognitoAuthorizer
 
+helper-get-batch-subtypes:
+  handler: services/helper/get-batch-subtypes.php
+  runtime: php-84
+  description: "Obtiene los tipos de lote disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/batch-subtypes
+        authorizer: cognitoAuthorizer
+
 helper-get-metabisulfite-types:
   handler: services/helper/get-metabisulfite-types.php
   runtime: php-84
