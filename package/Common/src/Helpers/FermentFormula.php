@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Common\Mead;
+namespace App\Common\Helpers;
 
 use App\Common\Traits\MeadCalculationsTrait;
 
-class MeadCalculator
+class FermentFormula
 {
     use MeadCalculationsTrait;
 }

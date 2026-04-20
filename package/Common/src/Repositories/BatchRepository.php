@@ -49,6 +49,20 @@ class BatchRepository
         return $batches;
     }
 
+    public function getBatchById(string $id): ?BatchEntity
+    {
+        $result = $this->dbClient->getItem([
+            'TableName' => $this->tableName,
+            'Key' => $this->marshaler->marshalItem(['id' => $id])
+        ]);
+
+        if (empty($result['Item'])) {
+            return null;
+        }
+
+        return BatchEntity::fromArray($this->marshaler->unmarshalItem($result['Item']));
+    }
+
     public function getBatch(string $profile_id, string $id): ?BatchEntity
     {
         $result = $this->dbClient->getItem([

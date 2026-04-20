@@ -1,11 +1,17 @@
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
 
-use App\Common\Mead\MeadCalculator;
+use App\Common\Helpers\FermentFormula;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
+
+const STATUS_TRIGGER_FIELDS = [
+    'sorbate_grams_used', 'benzoate_grams_used', 'metabisulfite_grams_used',
+    'bentonite_grams_used', 'albumin_grams_used',
+];
 
 const RECALC_TRIGGER_FIELDS = [
     'honey_kg', 'initial_brix', 'final_brix_desired',
@@ -77,7 +83,7 @@ return function (array $event) {
                 return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid metabisulfite_type'])];
             }
 
-            $calc = MeadCalculator::calculateMeadDetails(
+            $calc = FermentFormula::calculateMeadDetails(
                 $honeyKg,
                 $initialBrix,
                 $finalBrixDesired,
@@ -150,6 +156,23 @@ return function (array $event) {
                     'statusCode' => 400,
                     'body' => json_encode(['error' => "{$field} ({$used}g) exceeds the maximum allowed ({$limits['max']}g)"])
                 ];
+            }
+        }
+
+        if (!empty(array_intersect(array_keys($body), STATUS_TRIGGER_FIELDS))) {
+            $batchRepository = new App\Common\Repositories\BatchRepository();
+            $batch = $batchRepository->getBatchById($existing->batch_id);
+            if ($batch !== null) {
+                $batchRepository->updateBatchStatus($batch->profile_id, $existing->batch_id, BatchStatus::IN_PROCESS->value);
+            
+                $fermentationLogRepository = new App\Common\Repositories\FermentationLogRepository();
+                $existingLogs = $fermentationLogRepository->getFermentationLogsByBatchId($existing->batch_id);
+                if ($existingLogs === null) {
+                    $fermentationLogRepository->createFermentationLog(
+                        ['brix' => $existing->initial_brix],
+                        $existing->batch_id
+                    );
+                }
             }
         }
 

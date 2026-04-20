@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
 
-use App\Common\Mead\MeadCalculator;
+use App\Common\Helpers\FermentFormula;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
@@ -80,7 +80,7 @@ return function (array $event) {
         $metabisulfiteType = $body['metabisulfite_type'];
     }
 
-    $calc = MeadCalculator::calculateMeadDetails(
+    $calc = FermentFormula::calculateMeadDetails(
         $honeyKg,
         $initialBrix,
         $finalBrixDes,
