@@ -21,30 +21,34 @@ class FermentationLogRepository
         $this->tableName = $_ENV['DYNAMODB_TABLE_FERMENTATION_LOGS'];
     }
 
-    public function getFermentationLogsByBatchId(string $batchId): ?array
+    public function getFermentationLogsByBatchId(string $batchId, int $limit = 20, ?array $lastEvaluatedKey = null): array
     {
         $params = [
-            'TableName' => $this->tableName,
-            'IndexName' => 'batch_id-index',
-            'KeyConditionExpression' => 'batch_id = :batch_id',
+            'TableName'                 => $this->tableName,
+            'IndexName'                 => 'batch_id-recorded_at-index',
+            'KeyConditionExpression'    => 'batch_id = :batch_id',
             'ExpressionAttributeValues' => $this->marshaler->marshalItem([
-                ':batch_id' => $batchId
+                ':batch_id' => $batchId,
             ]),
-            'ScanIndexForward' => true
+            'ScanIndexForward'          => true,
+            'Limit'                     => $limit,
         ];
 
-        $result = $this->dbClient->query($params);
-
-        if (empty($result['Items'])) {
-            return null;
+        if ($lastEvaluatedKey !== null) {
+            $params['ExclusiveStartKey'] = $lastEvaluatedKey;
         }
+
+        $result = $this->dbClient->query($params);
 
         $logs = [];
         foreach ($result['Items'] as $item) {
             $logs[] = FermentationLogEntity::fromArray($this->marshaler->unmarshalItem($item));
         }
 
-        return $logs;
+        return [
+            'items'              => $logs,
+            'last_evaluated_key' => $result['LastEvaluatedKey'] ?? null,
+        ];
     }
 
     public function getFermentationLog(string $id): ?FermentationLogEntity

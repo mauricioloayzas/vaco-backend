@@ -2,17 +2,17 @@
 
 namespace App\Common\Repositories;
 
+use Mauloasan\BobConstruye\DynamoDB\Entities\Vaco\BatchSugarCaneWineDetailEntity;
 use Mauloasan\BobConstruye\DynamoDB\DynamoDbClientFactory;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
-use Mauloasan\BobConstruye\DynamoDB\Entities\Vaco\BatchMeadDetailEntity;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
 use Ramsey\Uuid\Uuid;
 
-class BatchMeadDetailRepository
+class BatchSugarCaneWineDetailRepository
 {
     private DynamoDbClient $dbClient;
     private Marshaler $marshaler;
@@ -20,20 +20,18 @@ class BatchMeadDetailRepository
 
     public function __construct()
     {
-        $this->dbClient = DynamoDbClientFactory::create();
+        $this->dbClient  = DynamoDbClientFactory::create();
         $this->marshaler = new Marshaler();
-        $this->tableName = $_ENV['DYNAMODB_TABLE_BATCH_MEAD_DETAILS'];
+        $this->tableName = $_ENV['DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS'];
     }
 
-    public function getBatchMeadDetailsByBatchId(string $batchId): ?BatchMeadDetailEntity
+    public function getBatchSugarCaneWineDetailsByBatchId(string $batchId): ?BatchSugarCaneWineDetailEntity
     {
         $params = [
             'TableName'                 => $this->tableName,
             'IndexName'                 => 'batch_id-index',
             'KeyConditionExpression'    => 'batch_id = :batch_id',
-            'ExpressionAttributeValues' => $this->marshaler->marshalItem([
-                ':batch_id' => $batchId,
-            ]),
+            'ExpressionAttributeValues' => $this->marshaler->marshalItem([':batch_id' => $batchId]),
             'ScanIndexForward'          => true,
             'Limit'                     => 1,
         ];
@@ -44,24 +42,24 @@ class BatchMeadDetailRepository
             return null;
         }
 
-        return BatchMeadDetailEntity::fromArray($this->marshaler->unmarshalItem($result['Items'][0]));
+        return BatchSugarCaneWineDetailEntity::fromArray($this->marshaler->unmarshalItem($result['Items'][0]));
     }
 
-    public function getBatchMeadDetail(string $id): ?BatchMeadDetailEntity
+    public function getBatchSugarCaneWineDetail(string $id): ?BatchSugarCaneWineDetailEntity
     {
         $result = $this->dbClient->getItem([
             'TableName' => $this->tableName,
-            'Key' => $this->marshaler->marshalItem(['id' => $id])
+            'Key'       => $this->marshaler->marshalItem(['id' => $id]),
         ]);
 
         if (empty($result['Item'])) {
             return null;
         }
 
-        return BatchMeadDetailEntity::fromArray($this->marshaler->unmarshalItem($result['Item']));
+        return BatchSugarCaneWineDetailEntity::fromArray($this->marshaler->unmarshalItem($result['Item']));
     }
 
-    public function createBatchMeadDetail(array $data, string $batchId): ?BatchMeadDetailEntity
+    public function createBatchSugarCaneWineDetail(array $data, string $batchId): ?BatchSugarCaneWineDetailEntity
     {
         $id = Uuid::uuid4()->toString();
 
@@ -73,34 +71,24 @@ class BatchMeadDetailRepository
             throw new \InvalidArgumentException('Invalid yeast_strain provided.');
         }
 
-        if (
-            isset($data['nutrient_primary']) &&
-            NutrientType::tryFrom($data['nutrient_primary']) === null
-        ) {
+        if (isset($data['nutrient_primary']) && NutrientType::tryFrom($data['nutrient_primary']) === null) {
             throw new \InvalidArgumentException('Invalid nutrient_primary provided.');
         }
 
-        if (
-            isset($data['nutrient_secondary']) &&
-            NutrientType::tryFrom($data['nutrient_secondary']) === null
-        ) {
+        if (isset($data['nutrient_secondary']) && NutrientType::tryFrom($data['nutrient_secondary']) === null) {
             throw new \InvalidArgumentException('Invalid nutrient_secondary provided.');
         }
 
-        if (
-            isset($data['metabisulfite_type']) &&
-            MetabisulfiteType::tryFrom($data['metabisulfite_type']) === null
-        ) {
+        if (isset($data['metabisulfite_type']) && MetabisulfiteType::tryFrom($data['metabisulfite_type']) === null) {
             throw new \InvalidArgumentException('Invalid metabisulfite_type provided.');
         }
 
         $item = [
             'id'                       => $id,
             'batch_id'                 => $batchId,
-            'honey_kg'                 => (float)$data['honey_kg'],
-            'honey_brix'               => (float)$data['honey_brix'],
-            'initial_brix'             => (float)$data['initial_brix'],
-            'water_liters'             => (float)$data['water_liters'],
+            'juice_liters'             => (float)$data['juice_liters'],
+            'sugarcane_brix'           => (float)$data['sugarcane_brix'],
+            'water_liters'             => 0.0,
             'total_must_liters'        => (float)$data['total_must_liters'],
             'final_brix_desired'       => (float)$data['final_brix_desired'],
             'yeast_type'               => $data['yeast_type'],
@@ -137,55 +125,55 @@ class BatchMeadDetailRepository
 
         $this->dbClient->putItem([
             'TableName' => $this->tableName,
-            'Item' => $this->marshaler->marshalItem($item)
+            'Item'      => $this->marshaler->marshalItem($item),
         ]);
 
-        return $this->getBatchMeadDetail($id);
+        return $this->getBatchSugarCaneWineDetail($id);
     }
 
-    public function updateBatchMeadDetail(string $id, array $data): ?BatchMeadDetailEntity
+    public function updateBatchSugarCaneWineDetail(string $id, array $data): ?BatchSugarCaneWineDetailEntity
     {
-        $updateExpression = 'SET ';
+        $updateExpression          = 'SET ';
         $expressionAttributeValues = [];
-        $expressionAttributeNames = [];
+        $expressionAttributeNames  = [];
 
         foreach ($data as $key => $value) {
             if ($key === 'id') {
                 continue;
             }
 
-            $placeholderName = '#' . $key;
+            $placeholderName  = '#' . $key;
             $placeholderValue = ':' . $key;
 
             $updateExpression .= $placeholderName . ' = ' . $placeholderValue . ', ';
 
-            $expressionAttributeNames[$placeholderName] = $key;
+            $expressionAttributeNames[$placeholderName]  = $key;
             $expressionAttributeValues[$placeholderValue] = $value;
         }
 
         $updateExpression .= '#updated_at = :updated_at';
-        $expressionAttributeNames['#updated_at'] = 'updated_at';
-        $expressionAttributeValues[':updated_at'] = date('c');
+        $expressionAttributeNames['#updated_at']   = 'updated_at';
+        $expressionAttributeValues[':updated_at']   = date('c');
 
         $params = [
-            'TableName' => $this->tableName,
-            'Key' => $this->marshaler->marshalItem(['id' => $id]),
-            'UpdateExpression' => $updateExpression,
+            'TableName'                 => $this->tableName,
+            'Key'                       => $this->marshaler->marshalItem(['id' => $id]),
+            'UpdateExpression'          => $updateExpression,
             'ExpressionAttributeValues' => $this->marshaler->marshalItem($expressionAttributeValues),
-            'ExpressionAttributeNames' => $expressionAttributeNames,
-            'ReturnValues' => 'ALL_NEW'
+            'ExpressionAttributeNames'  => $expressionAttributeNames,
+            'ReturnValues'              => 'ALL_NEW',
         ];
 
         $this->dbClient->updateItem($params);
 
-        return $this->getBatchMeadDetail($id);
+        return $this->getBatchSugarCaneWineDetail($id);
     }
 
-    public function deleteBatchMeadDetail(string $id): bool
+    public function deleteBatchSugarCaneWineDetail(string $id): bool
     {
         $this->dbClient->deleteItem([
             'TableName' => $this->tableName,
-            'Key' => $this->marshaler->marshalItem(['id' => $id])
+            'Key'       => $this->marshaler->marshalItem(['id' => $id]),
         ]);
 
         return true;

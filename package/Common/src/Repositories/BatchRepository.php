@@ -24,29 +24,33 @@ class BatchRepository
         $this->tableName = $_ENV['DYNAMODB_TABLE_BATCHES'];
     }
 
-    public function getBatches(string $profile_id): ?array
+    public function getBatches(string $profile_id, int $limit = 20, ?array $lastEvaluatedKey = null): array
     {
         $params = [
-            'TableName' => $this->tableName,
-            'IndexName' => 'profile_id-index',
-            'KeyConditionExpression' => 'profile_id = :profile_id',
+            'TableName'                 => $this->tableName,
+            'IndexName'                 => 'profile_id-index',
+            'KeyConditionExpression'    => 'profile_id = :profile_id',
             'ExpressionAttributeValues' => $this->marshaler->marshalItem([
-                ':profile_id' => $profile_id
+                ':profile_id' => $profile_id,
             ]),
+            'Limit'                     => $limit,
         ];
 
-        $result = $this->dbClient->query($params);
-
-        if (empty($result['Items'])) {
-            return null;
+        if ($lastEvaluatedKey !== null) {
+            $params['ExclusiveStartKey'] = $lastEvaluatedKey;
         }
+
+        $result = $this->dbClient->query($params);
 
         $batches = [];
         foreach ($result['Items'] as $item) {
             $batches[] = BatchEntity::fromArray($this->marshaler->unmarshalItem($item));
         }
 
-        return $batches;
+        return [
+            'items'              => $batches,
+            'last_evaluated_key' => $result['LastEvaluatedKey'] ?? null,
+        ];
     }
 
     public function getBatchById(string $id): ?BatchEntity

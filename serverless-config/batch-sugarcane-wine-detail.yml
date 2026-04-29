@@ -1,0 +1,49 @@
+batch-sugarcane-wine-detail-get-by-batch:
+  handler: services/batch-sugarcane-wine-detail/get-batch-sugarcane-wine-details-by-batch-id.php
+  runtime: php-84
+  description: "Obtiene los detalles de vino de caña de azúcar de un lote"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch/{batch_id}/sugarcane-wine-detail
+        authorizer: cognitoAuthorizer
+
+batch-sugarcane-wine-detail-get:
+  handler: services/batch-sugarcane-wine-detail/get-batch-sugarcane-wine-detail.php
+  runtime: php-84
+  description: "Obtiene un detalle de vino de caña de azúcar por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch-sugarcane-wine-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-sugarcane-wine-detail-create:
+  handler: services/batch-sugarcane-wine-detail/create-batch-sugarcane-wine-detail.php
+  runtime: php-84
+  description: "Crea el detalle de vino de caña de azúcar para un lote"
+  events:
+    - httpApi:
+        method: POST
+        path: /batch/{batch_id}/sugarcane-wine-detail
+        authorizer: cognitoAuthorizer
+
+batch-sugarcane-wine-detail-update:
+  handler: services/batch-sugarcane-wine-detail/update-batch-sugarcane-wine-detail.php
+  runtime: php-84
+  description: "Actualiza un detalle de vino de caña de azúcar por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /batch-sugarcane-wine-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-sugarcane-wine-detail-delete:
+  handler: services/batch-sugarcane-wine-detail/delete-batch-sugarcane-wine-detail.php
+  runtime: php-84
+  description: "Elimina un detalle de vino de caña de azúcar por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /batch-sugarcane-wine-detail/{id}
+        authorizer: cognitoAuthorizer

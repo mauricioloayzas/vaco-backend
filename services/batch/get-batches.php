@@ -14,14 +14,24 @@ return function (array $event) {
 
     try {
 
+        $limit            = (int)($event['queryStringParameters']['limit'] ?? 20);
+        $lastEvaluatedKey = isset($event['queryStringParameters']['cursor'])
+            ? json_decode(base64_decode($event['queryStringParameters']['cursor']), true)
+            : null;
+
         $repository = new App\Common\Repositories\BatchRepository();
-        $batches = $repository->getBatches($profile_id);
+        $result     = $repository->getBatches($profile_id, $limit, $lastEvaluatedKey);
+
+        $nextCursor = $result['last_evaluated_key']
+            ? base64_encode(json_encode($result['last_evaluated_key']))
+            : null;
 
         return [
             'statusCode' => 200,
             'headers' => ['Content-Type' => 'application/json'],
             'body' => json_encode([
-                'data' => $batches ? array_map(fn($b) => $b->toArray(), $batches) : []
+                'data'        => array_map(fn($b) => $b->toArray(), $result['items']),
+                'next_cursor' => $nextCursor,
             ])
         ];
 

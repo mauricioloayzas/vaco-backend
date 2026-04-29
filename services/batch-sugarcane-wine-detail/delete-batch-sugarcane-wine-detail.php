@@ -3,27 +3,27 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 return function (array $event) {
 
-    $batchId = $event['pathParameters']['batch_id'] ?? null;
+    $id = $event['pathParameters']['id'] ?? null;
 
-    if (empty($batchId)) {
+    if (empty($id)) {
         return [
             'statusCode' => 400,
             'body' => json_encode([
-                'error' => 'Missing required parameter: batch_id'
+                'error' => 'Missing required parameter: id'
             ])
         ];
     }
 
     try {
 
-        $repository = new App\Common\Repositories\BatchMeadDetailRepository();
-        $detail = $repository->getBatchMeadDetailsByBatchId($batchId);
+        $repository = new App\Common\Repositories\BatchSugarCaneWineDetailRepository();
+        $repository->deleteBatchSugarCaneWineDetail($id);
 
         return [
             'statusCode' => 200,
             'headers' => ['Content-Type' => 'application/json'],
             'body' => json_encode([
-                'data' => $detail?->toArray()
+                'message' => 'Batch sugar cane wine detail deleted successfully'
             ])
         ];
 

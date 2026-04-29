@@ -14,6 +14,7 @@ provider:
 
     DYNAMODB_TABLE_BATCHES: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch
     DYNAMODB_TABLE_BATCH_MEAD_DETAILS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_mead
+    DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_sugar_cane_wine
     DYNAMODB_TABLE_FERMENTATION_LOGS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_fermentation_log
 
     COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
@@ -69,6 +70,11 @@ provider:
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_MEAD_DETAILS}/index/batch_id-index"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_MEAD_DETAILS}/index/yeast_type-created_at-index"
 
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS}/index/batch_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS}/index/yeast_type-created_at-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS}/index/sweetness_profile-created_at-index"
+
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}/index/batch_id-recorded_at-index"
 
@@ -87,6 +93,7 @@ package:
 functions:
   - ${file(serverless-config/batch.yml)}
   - ${file(serverless-config/batch-mead-detail.yml)}
+  - ${file(serverless-config/batch-sugarcane-wine-detail.yml)}
   - ${file(serverless-config/fermentation-log.yml)}
   - ${file(serverless-config/mead-recipe.yml)}
   - ${file(serverless-config/helper.yml)}
