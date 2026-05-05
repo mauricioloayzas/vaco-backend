@@ -1,0 +1,59 @@
+tool-get-all:
+  handler: services/tool/get-tools.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene todas las herramientas de un perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/tool
+        authorizer: cognitoAuthorizer
+
+tool-get:
+  handler: services/tool/get-tool.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene una herramienta por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/tool/{id}
+        authorizer: cognitoAuthorizer
+
+tool-create:
+  handler: services/tool/create-tool.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Crea una nueva herramienta"
+  events:
+    - httpApi:
+        method: POST
+        path: /profiles/{profile_id}/tool
+        authorizer: cognitoAuthorizer
+
+tool-update:
+  handler: services/tool/update-tool.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Actualiza una herramienta por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /profiles/{profile_id}/tool/{id}
+        authorizer: cognitoAuthorizer
+
+tool-delete:
+  handler: services/tool/delete-tool.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina una herramienta por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /profiles/{profile_id}/tool/{id}
+        authorizer: cognitoAuthorizer

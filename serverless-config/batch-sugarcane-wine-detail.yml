@@ -1,6 +1,8 @@
 batch-sugarcane-wine-detail-get-by-batch:
   handler: services/batch-sugarcane-wine-detail/get-batch-sugarcane-wine-details-by-batch-id.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Obtiene los detalles de vino de caña de azúcar de un lote"
   events:
     - httpApi:
@@ -11,6 +13,8 @@ batch-sugarcane-wine-detail-get-by-batch:
 batch-sugarcane-wine-detail-get:
   handler: services/batch-sugarcane-wine-detail/get-batch-sugarcane-wine-detail.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Obtiene un detalle de vino de caña de azúcar por ID"
   events:
     - httpApi:
@@ -21,6 +25,8 @@ batch-sugarcane-wine-detail-get:
 batch-sugarcane-wine-detail-create:
   handler: services/batch-sugarcane-wine-detail/create-batch-sugarcane-wine-detail.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Crea el detalle de vino de caña de azúcar para un lote"
   events:
     - httpApi:
@@ -31,6 +37,8 @@ batch-sugarcane-wine-detail-create:
 batch-sugarcane-wine-detail-update:
   handler: services/batch-sugarcane-wine-detail/update-batch-sugarcane-wine-detail.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Actualiza un detalle de vino de caña de azúcar por ID"
   events:
     - httpApi:
@@ -41,6 +49,8 @@ batch-sugarcane-wine-detail-update:
 batch-sugarcane-wine-detail-delete:
   handler: services/batch-sugarcane-wine-detail/delete-batch-sugarcane-wine-detail.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Elimina un detalle de vino de caña de azúcar por ID"
   events:
     - httpApi:

@@ -1,0 +1,59 @@
+batch-production-cost-get-by-batch:
+  handler: services/batch-production-cost/get-batch-production-costs-by-batch-id.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los costos de producción de un lote"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch/{batch_id}/production-cost
+        authorizer: cognitoAuthorizer
+
+batch-production-cost-get:
+  handler: services/batch-production-cost/get-batch-production-cost.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene un costo de producción por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch-production-cost/{id}
+        authorizer: cognitoAuthorizer
+
+batch-production-cost-create:
+  handler: services/batch-production-cost/create-batch-production-cost.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Calcula y registra el costo de producción de un lote"
+  events:
+    - httpApi:
+        method: POST
+        path: /batch/{batch_id}/production-cost
+        authorizer: cognitoAuthorizer
+
+batch-production-cost-update:
+  handler: services/batch-production-cost/update-batch-production-cost.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Actualiza un costo de producción por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /batch-production-cost/{id}
+        authorizer: cognitoAuthorizer
+
+batch-production-cost-delete:
+  handler: services/batch-production-cost/delete-batch-production-cost.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina un costo de producción por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /batch-production-cost/{id}
+        authorizer: cognitoAuthorizer

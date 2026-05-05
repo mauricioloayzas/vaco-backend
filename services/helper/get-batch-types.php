@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/../../vendor/autoload.php';
+require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php' : __DIR__ . '/../../vendor/autoload.php';
 
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 

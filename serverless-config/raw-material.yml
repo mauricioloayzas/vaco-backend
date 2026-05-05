@@ -1,0 +1,59 @@
+raw-material-get-all:
+  handler: services/raw-material/get-raw-materials.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene todas las materias primas de un perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material
+        authorizer: cognitoAuthorizer
+
+raw-material-get:
+  handler: services/raw-material/get-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene una materia prima por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material/{id}
+        authorizer: cognitoAuthorizer
+
+raw-material-create:
+  handler: services/raw-material/create-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Crea una nueva materia prima"
+  events:
+    - httpApi:
+        method: POST
+        path: /profiles/{profile_id}/raw-material
+        authorizer: cognitoAuthorizer
+
+raw-material-update:
+  handler: services/raw-material/update-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Actualiza una materia prima por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /profiles/{profile_id}/raw-material/{id}
+        authorizer: cognitoAuthorizer
+
+raw-material-delete:
+  handler: services/raw-material/delete-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina una materia prima por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /profiles/{profile_id}/raw-material/{id}
+        authorizer: cognitoAuthorizer

@@ -17,8 +17,15 @@ provider:
     DYNAMODB_TABLE_BATCH_SUGARCANE_WINE_DETAILS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_sugar_cane_wine
     DYNAMODB_TABLE_FERMENTATION_LOGS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_fermentation_log
 
+    DYNAMODB_TABLE_RAW_MATERIALS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_raw_materials
+    DYNAMODB_TABLE_TOOLS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_tools
+    DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_production_costs
+
+    BREF_AUTOLOAD_PATH: /var/task/package/autoload.php
+
     COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
     COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_CLIENT_SECRET: ${env:COGNITO_CLIENT_SECRET}
 
   httpApi:
     cors:
@@ -78,16 +85,30 @@ provider:
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_FERMENTATION_LOGS}/index/batch_id-recorded_at-index"
 
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIALS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIALS}/index/profile_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIALS}/index/profile_id-category-index"
+
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_TOOLS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_TOOLS}/index/profile_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_TOOLS}/index/profile_id-depreciation_method-index"
+
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS}/index/batch_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS}/index/profile_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS}/index/profile_id-created_at-index"
+
 plugins:
     - ./vendor/bref/bref
 
+custom:
+  vendorLayerArn: ${file(.vendor-layer-arn)}
+
 package:
   patterns:
-    - 'package/**'
+    - '!**'
     - 'services/**'
-    - 'vendor/**'
-    - '!node_modules/**'
-    - '!.git/**'
+    - 'package/**'
 
 # Definición de cada Microservicio (Función Lambda)
 functions:
@@ -96,4 +117,7 @@ functions:
   - ${file(serverless-config/batch-sugarcane-wine-detail.yml)}
   - ${file(serverless-config/fermentation-log.yml)}
   - ${file(serverless-config/mead-recipe.yml)}
+  - ${file(serverless-config/raw-material.yml)}
+  - ${file(serverless-config/tool.yml)}
+  - ${file(serverless-config/batch-production-cost.yml)}
   - ${file(serverless-config/helper.yml)}

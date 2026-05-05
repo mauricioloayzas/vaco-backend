@@ -1,6 +1,8 @@
 batch-get-all:
   handler: services/batch/get-batches.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Obtiene todos los lotes de un perfil"
   events:
     - httpApi:
@@ -11,6 +13,8 @@ batch-get-all:
 batch-get:
   handler: services/batch/get-batch.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Obtiene un lote por ID"
   events:
     - httpApi:
@@ -21,6 +25,8 @@ batch-get:
 batch-get-by-code:
   handler: services/batch/get-batch-by-code.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Obtiene un lote por código"
   events:
     - httpApi:
@@ -31,6 +37,8 @@ batch-get-by-code:
 batch-create:
   handler: services/batch/create-batch.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Crea un nuevo lote"
   events:
     - httpApi:
@@ -41,6 +49,8 @@ batch-create:
 batch-update:
   handler: services/batch/update-batch.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Actualiza un lote por ID"
   events:
     - httpApi:
@@ -51,6 +61,8 @@ batch-update:
 batch-update-status:
   handler: services/batch/update-batch-status.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Actualiza el estado de un lote"
   events:
     - httpApi:
@@ -61,6 +73,8 @@ batch-update-status:
 batch-delete:
   handler: services/batch/delete-batch.php
   runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
   description: "Elimina un lote por ID"
   events:
     - httpApi:
