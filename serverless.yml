@@ -4,6 +4,7 @@ provider:
   name: aws
   region: us-east-1
   runtime: provided.al2023
+  versionFunctions: false
 
   environment:
     STAGE: ${opt:stage, 'dev'}
