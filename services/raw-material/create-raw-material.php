@@ -10,7 +10,7 @@ return function (array $event) {
         return ['statusCode' => 400, 'body' => json_encode(['error' => 'Missing required profile_id'])];
     }
 
-    $required = ['name', 'unit', 'price_per_unit', 'category'];
+    $required = ['name', 'unit', 'category'];
     foreach ($required as $field) {
         if (!isset($body[$field]) || $body[$field] === '') {
             return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field: {$field}"])];

@@ -791,20 +791,23 @@
         },
         {
             "name": "mauricioloayzas/bob-construye",
-            "version": "v1.18",
+            "version": "v1.20",
             "source": {
                 "type": "git",
                 "url": "git@github.com:mauricioloayzas/bob-construye.git",
-                "reference": "b3d47eef8a41298214af611f400cc09d2dc1397f"
+                "reference": "8fa952813fa556188df4ce5d8330c1cb1d639116"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mauricioloayzas/bob-construye/zipball/b3d47eef8a41298214af611f400cc09d2dc1397f",
-                "reference": "b3d47eef8a41298214af611f400cc09d2dc1397f",
+                "url": "https://api.github.com/repos/mauricioloayzas/bob-construye/zipball/8fa952813fa556188df4ce5d8330c1cb1d639116",
+                "reference": "8fa952813fa556188df4ce5d8330c1cb1d639116",
                 "shasum": ""
             },
             "require": {
                 "aws/aws-sdk-php": "^3.200",
+                "bref/bref": "^3.0",
+                "php": ">=8.4",
+                "ramsey/uuid": "^4.9",
                 "vlucas/phpdotenv": "^5.6"
             },
             "type": "library",
@@ -824,10 +827,10 @@
             ],
             "description": "Una librería base para gestionar el ambiente AWS de proyectos en mauloasan",
             "support": {
-                "source": "https://github.com/mauricioloayzas/bob-construye/tree/v1.18",
+                "source": "https://github.com/mauricioloayzas/bob-construye/tree/v1.20",
                 "issues": "https://github.com/mauricioloayzas/bob-construye/issues"
             },
-            "time": "2026-05-03T03:40:16+00:00"
+            "time": "2026-05-07T21:33:57+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",

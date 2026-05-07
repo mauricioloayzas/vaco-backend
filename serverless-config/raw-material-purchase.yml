@@ -1,0 +1,59 @@
+raw-material-purchase-get-all:
+  handler: services/raw-material-purchase/get-raw-material-purchases.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene todas las compras de materias primas de un perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material-purchase
+        authorizer: cognitoAuthorizer
+
+raw-material-purchase-get-by-raw-material:
+  handler: services/raw-material-purchase/get-raw-material-purchases-by-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene las compras de una materia prima específica"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material/{raw_material_id}/raw-material-purchase
+        authorizer: cognitoAuthorizer
+
+raw-material-purchase-get:
+  handler: services/raw-material-purchase/get-raw-material-purchase.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene una compra de materia prima por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material-purchase/{id}
+        authorizer: cognitoAuthorizer
+
+raw-material-purchase-create:
+  handler: services/raw-material-purchase/create-raw-material-purchase.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Crea una nueva compra de materia prima y actualiza stock y precio promedio"
+  events:
+    - httpApi:
+        method: POST
+        path: /profiles/{profile_id}/raw-material-purchase
+        authorizer: cognitoAuthorizer
+
+raw-material-purchase-delete:
+  handler: services/raw-material-purchase/delete-raw-material-purchase.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina una compra de materia prima por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /profiles/{profile_id}/raw-material-purchase/{id}
+        authorizer: cognitoAuthorizer
