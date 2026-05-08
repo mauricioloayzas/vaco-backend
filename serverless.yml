@@ -19,7 +19,7 @@ provider:
     DYNAMODB_TABLE_FERMENTATION_LOGS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_fermentation_log
 
     DYNAMODB_TABLE_RAW_MATERIALS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_raw_materials
-    DYNAMODB_TABLE_RAW_MATERIAL_PURCHASES: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_raw_material_purchases
+    DYNAMODB_TABLE_RAW_MATERIAL_MOVEMENTS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_raw_material_movements
     DYNAMODB_TABLE_TOOLS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_tools
     DYNAMODB_TABLE_BATCH_PRODUCTION_COSTS: ${self:provider.environment.STAGE}_${self:provider.environment.DYNAMODB_TABLE_PREFIX_VACO}_batch_production_costs
 
@@ -91,10 +91,10 @@ provider:
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIALS}/index/profile_id-index"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIALS}/index/profile_id-category-index"
 
-            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_PURCHASES}"
-            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_PURCHASES}/index/raw_material_id-index"
-            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_PURCHASES}/index/raw_material_id-purchased_at-index"
-            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_PURCHASES}/index/profile_id-purchased_at-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_MOVEMENTS}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_MOVEMENTS}/index/raw_material_id-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_MOVEMENTS}/index/raw_material_id-occurred_at-index"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_RAW_MATERIAL_MOVEMENTS}/index/profile_id-occurred_at-index"
 
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_TOOLS}"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE_TOOLS}/index/profile_id-index"
@@ -125,7 +125,7 @@ functions:
   - ${file(serverless-config/fermentation-log.yml)}
   - ${file(serverless-config/mead-recipe.yml)}
   - ${file(serverless-config/raw-material.yml)}
-  - ${file(serverless-config/raw-material-purchase.yml)}
+  - ${file(serverless-config/raw-material-movement.yml)}
   - ${file(serverless-config/tool.yml)}
   - ${file(serverless-config/batch-production-cost.yml)}
   - ${file(serverless-config/helper.yml)}

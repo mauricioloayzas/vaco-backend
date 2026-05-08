@@ -3,12 +3,20 @@ require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php
 
 return function (array $event) {
 
-    $profile_id = $event['pathParameters']['profile_id'] ?? null;
+    $profile_id      = $event['pathParameters']['profile_id'] ?? null;
+    $raw_material_id = $event['pathParameters']['raw_material_id'] ?? null;
 
     if (empty($profile_id)) {
         return [
             'statusCode' => 400,
             'body' => json_encode(['error' => 'Missing required profile_id']),
+        ];
+    }
+
+    if (empty($raw_material_id)) {
+        return [
+            'statusCode' => 400,
+            'body' => json_encode(['error' => 'Missing required parameter: raw_material_id']),
         ];
     }
 
@@ -19,8 +27,8 @@ return function (array $event) {
             ? json_decode(base64_decode($event['queryStringParameters']['cursor']), true)
             : null;
 
-        $repository = new App\Common\Repositories\RawMaterialPurchaseRepository();
-        $result     = $repository->getPurchases($profile_id, $limit, $lastEvaluatedKey);
+        $repository = new App\Common\Repositories\RawMaterialMovementRepository();
+        $result     = $repository->getMovementsByRawMaterial($profile_id, $raw_material_id, $limit, $lastEvaluatedKey);
 
         $nextCursor = $result['last_evaluated_key']
             ? base64_encode(json_encode($result['last_evaluated_key']))

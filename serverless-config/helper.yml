@@ -106,6 +106,18 @@ helper-get-raw-material-categories:
         path: /helper/raw-material-categories
         authorizer: cognitoAuthorizer
 
+helper-get-raw-material-movement-types:
+  handler: services/helper/get-raw-material-movement-types.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene las tipos de movimiento de materia prima disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/raw-material-movement-types
+        authorizer: cognitoAuthorizer
+
 helper-get-raw-material-units:
   handler: services/helper/get-raw-material-units.php
   runtime: php-84

@@ -1,0 +1,59 @@
+raw-material-movement-get-all:
+  handler: services/raw-material-movement/get-raw-material-movements.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene todas las movimientos de materias primas de un perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material-movement
+        authorizer: cognitoAuthorizer
+
+raw-material-movement-get-by-raw-material:
+  handler: services/raw-material-movement/get-raw-material-movement-by-raw-material.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene las movimientos de una materia prima específica"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material/{raw_material_id}/raw-material-movement
+        authorizer: cognitoAuthorizer
+
+raw-material-movement-get:
+  handler: services/raw-material-movement/get-raw-material-movement.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene una movimiento de materia prima por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /profiles/{profile_id}/raw-material-movement/{id}
+        authorizer: cognitoAuthorizer
+
+raw-material-movement-create:
+  handler: services/raw-material-movement/create-raw-material-movement.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Crea una nueva movimiento de materia prima y actualiza stock y precio promedio"
+  events:
+    - httpApi:
+        method: POST
+        path: /profiles/{profile_id}/raw-material-movement
+        authorizer: cognitoAuthorizer
+
+raw-material-movement-delete:
+  handler: services/raw-material-movement/delete-raw-material-movement.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina una movimiento de materia prima por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /profiles/{profile_id}/raw-material-movement/{id}
+        authorizer: cognitoAuthorizer

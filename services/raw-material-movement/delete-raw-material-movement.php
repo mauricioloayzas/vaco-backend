@@ -16,19 +16,19 @@ return function (array $event) {
 
     try {
 
-        $repository = new App\Common\Repositories\RawMaterialPurchaseRepository();
-        $purchase   = $repository->getPurchase($profile_id, $id);
+        $repository = new App\Common\Repositories\RawMaterialMovementRepository();
+        $purchase   = $repository->getMovement($profile_id, $id);
 
         if ($purchase === null) {
-            return ['statusCode' => 404, 'body' => json_encode(['error' => 'Raw material purchase not found'])];
+            return ['statusCode' => 404, 'body' => json_encode(['error' => 'Raw material movement not found'])];
         }
 
-        $repository->deletePurchase($id);
+        $repository->deleteMovement($id);
 
         return [
             'statusCode' => 200,
             'headers'    => ['Content-Type' => 'application/json'],
-            'body'       => json_encode(['message' => 'Raw material purchase deleted successfully']),
+            'body'       => json_encode(['message' => 'Raw material movement deleted successfully']),
         ];
 
     } catch (Exception $e) {

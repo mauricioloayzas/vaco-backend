@@ -16,11 +16,11 @@ return function (array $event) {
 
     try {
 
-        $repository = new App\Common\Repositories\RawMaterialPurchaseRepository();
-        $purchase   = $repository->getPurchase($profile_id, $id);
+        $repository = new App\Common\Repositories\RawMaterialMovementRepository();
+        $purchase   = $repository->getMovement($profile_id, $id);
 
         if ($purchase === null) {
-            return ['statusCode' => 404, 'body' => json_encode(['error' => 'Raw material purchase not found'])];
+            return ['statusCode' => 404, 'body' => json_encode(['error' => 'Raw material movement not found'])];
         }
 
         return [
