@@ -3,8 +3,16 @@
 namespace App\Common\Repositories;
 
 use Mauloasan\BobConstruye\DynamoDB\Entities\Vaco\RawMaterialEntity;
-use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\ClarifierType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialCategory;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\StabilizerType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 use Mauloasan\BobConstruye\DynamoDB\DynamoDbClientFactory;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
@@ -94,6 +102,8 @@ class RawMaterialRepository
             throw new \InvalidArgumentException('Invalid category provided.');
         }
 
+        $this->validateCategoryFields($data);
+
         $id   = Uuid::uuid4()->toString();
         $item = [
             'id'             => $id,
@@ -107,6 +117,12 @@ class RawMaterialRepository
             'created_at'     => date('c'),
             'updated_at'     => null,
         ];
+
+        foreach (['type', 'subtype', 'yeast_type', 'yeast_strain', 'nutrient_type', 'stabilizer_type', 'metabisulfite_type', 'clarifier_type'] as $field) {
+            if (isset($data[$field])) {
+                $item[$field] = $data[$field];
+            }
+        }
 
         $this->dbClient->putItem([
             'TableName' => $this->tableName,
@@ -125,6 +141,8 @@ class RawMaterialRepository
         if (isset($data['category']) && RawMaterialCategory::tryFrom($data['category']) === null) {
             throw new \InvalidArgumentException('Invalid category provided.');
         }
+
+        $this->validateCategoryFields($data);
 
         $updateExpression          = 'SET ';
         $expressionAttributeValues = [];
@@ -163,5 +181,33 @@ class RawMaterialRepository
         ]);
 
         return true;
+    }
+
+    private function validateCategoryFields(array $data): void
+    {
+        if (isset($data['type']) && BatchType::tryFrom($data['type']) === null) {
+            throw new \InvalidArgumentException('Invalid type provided.');
+        }
+        if (isset($data['subtype']) && BatchSubtype::tryFrom($data['subtype']) === null) {
+            throw new \InvalidArgumentException('Invalid subtype provided.');
+        }
+        if (isset($data['yeast_type']) && YeastType::tryFrom($data['yeast_type']) === null) {
+            throw new \InvalidArgumentException('Invalid yeast_type provided.');
+        }
+        if (isset($data['yeast_strain']) && YeastStrain::tryFrom($data['yeast_strain']) === null) {
+            throw new \InvalidArgumentException('Invalid yeast_strain provided.');
+        }
+        if (isset($data['nutrient_type']) && NutrientType::tryFrom($data['nutrient_type']) === null) {
+            throw new \InvalidArgumentException('Invalid nutrient_type provided.');
+        }
+        if (isset($data['stabilizer_type']) && StabilizerType::tryFrom($data['stabilizer_type']) === null) {
+            throw new \InvalidArgumentException('Invalid stabilizer_type provided.');
+        }
+        if (isset($data['metabisulfite_type']) && MetabisulfiteType::tryFrom($data['metabisulfite_type']) === null) {
+            throw new \InvalidArgumentException('Invalid metabisulfite_type provided.');
+        }
+        if (isset($data['clarifier_type']) && ClarifierType::tryFrom($data['clarifier_type']) === null) {
+            throw new \InvalidArgumentException('Invalid clarifier_type provided.');
+        }
     }
 }

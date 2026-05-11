@@ -17,6 +17,32 @@ return function (array $event) {
         }
     }
 
+    $categoryRequiredFields = [
+        'INGREDIENTE_BASE' => ['type', 'subtype'],
+        'LEVADURA'         => ['yeast_type', 'yeast_strain'],
+        'NUTRIENTE'        => ['nutrient_type'],
+        'ESTABILIZADOR'    => ['stabilizer_type'],
+        'CLARIFICANTE'     => ['clarifier_type'],
+        'OTRO'             => [],
+    ];
+
+    $category = $body['category'];
+    if (!array_key_exists($category, $categoryRequiredFields)) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => "Invalid category: {$category}"])];
+    }
+
+    foreach ($categoryRequiredFields[$category] as $field) {
+        if (!isset($body[$field]) || $body[$field] === '') {
+            return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field for category '{$category}': {$field}"])];
+        }
+    }
+
+    if ($category === 'ESTABILIZADOR' && ($body['stabilizer_type'] ?? '') === 'METABISULFITO') {
+        if (!isset($body['metabisulfite_type']) || $body['metabisulfite_type'] === '') {
+            return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field for stabilizer type 'METABISULFITO': metabisulfite_type"])];
+        }
+    }
+
     try {
 
         $repository  = new App\Common\Repositories\RawMaterialRepository();
