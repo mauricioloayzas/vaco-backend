@@ -18,12 +18,12 @@ return function (array $event) {
     }
 
     $categoryRequiredFields = [
-        'INGREDIENTE_BASE' => ['type', 'subtype'],
-        'LEVADURA'         => ['yeast_type', 'yeast_strain'],
-        'NUTRIENTE'        => ['nutrient_type'],
-        'ESTABILIZADOR'    => ['stabilizer_type'],
-        'CLARIFICANTE'     => ['clarifier_type'],
-        'OTRO'             => [],
+        'ingrediente_base' => ['type', 'subtype'],
+        'levadura'         => ['yeast_type', 'yeast_strain'],
+        'nutriente'        => ['nutrient_type'],
+        'estabilizador'    => ['stabilizer_type'],
+        'clarificante'     => ['clarifier_type'],
+        'otro'             => [],
     ];
 
     $category = $body['category'];
@@ -37,9 +37,9 @@ return function (array $event) {
         }
     }
 
-    if ($category === 'ESTABILIZADOR' && ($body['stabilizer_type'] ?? '') === 'METABISULFITO') {
+    if ($category === 'estabilizador' && ($body['stabilizer_type'] ?? '') === 'metabisulfito') {
         if (!isset($body['metabisulfite_type']) || $body['metabisulfite_type'] === '') {
-            return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field for stabilizer type 'METABISULFITO': metabisulfite_type"])];
+            return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field for stabilizer type 'metabisulfito': metabisulfite_type"])];
         }
     }
 
