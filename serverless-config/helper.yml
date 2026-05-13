@@ -141,3 +141,27 @@ helper-get-depreciation-methods:
         method: GET
         path: /helper/depreciation-methods
         authorizer: cognitoAuthorizer
+
+helper-get-clarifier-types:
+  handler: services/helper/get-clarifier-types.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los tipos de clarificante disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/clarifier-types
+        authorizer: cognitoAuthorizer
+
+helper-get-stabilizer-types:
+  handler: services/helper/get-stabilizer-types.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los tipos de estabilizante disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/stabilizer-types
+        authorizer: cognitoAuthorizer
