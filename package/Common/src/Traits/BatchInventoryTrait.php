@@ -138,6 +138,139 @@ trait BatchInventoryTrait
     }
 
     /**
+     * Adjusts stock for quantity differences when a batch detail is updated.
+     * Creates EXIT movements for increases and PURCHASE movements for decreases.
+     * Updates the existing production cost record for the batch.
+     *
+     * @param  string   $batchId
+     * @param  string   $profileId
+     * @param  array    $foundMaterials          From checkInventory (new ingredient state)
+     * @param  string   $baseIngredientLabel
+     * @param  float    $oldBaseQty              Old quantity (before update)
+     * @param  float    $newBaseQty              New quantity (after update)
+     * @param  callable $baseQtyConverter        fn(float $qty, RawMaterialUnit $unit): float
+     * @param  array    $oldGramValues           ['yeast_grams' => x, 'sorbate_grams_max' => x, ...]
+     * @param  array    $newCalc                 Output of FermentFormula::calculate* after recalc
+     * @param  string   $recipeNote
+     */
+    public static function settleInventoryUpdate(
+        string   $batchId,
+        string   $profileId,
+        array    $foundMaterials,
+        string   $baseIngredientLabel,
+        float    $oldBaseQty,
+        float    $newBaseQty,
+        callable $baseQtyConverter,
+        array    $oldGramValues,
+        array    $newCalc,
+        string   $recipeNote
+    ): void {
+        $gramsToUnit = fn(float $g, RawMaterialUnit $u): float => match ($u) {
+            RawMaterialUnit::KG => round($g / 1000, 6),
+            default             => $g,
+        };
+
+        $gramEntries = [
+            'yeast'              => [$oldGramValues['yeast_grams'],              $newCalc['yeast_grams']],
+            'sorbate'            => [$oldGramValues['sorbate_grams_max'],        $newCalc['sorbate_grams_max']],
+            'metabisulfite'      => [$oldGramValues['metabisulfite_grams'],      $newCalc['metabisulfite_grams']],
+            'bentonite'          => [$oldGramValues['bentonite_grams_max'],      $newCalc['bentonite_grams_max']],
+            'albumin'            => [$oldGramValues['albumin_grams_max'],        $newCalc['albumin_grams_max']],
+            'nutrient_primary'   => [$oldGramValues['nutrient_primary_grams'],  $newCalc['nutrient_primary_grams']],
+            'nutrient_secondary' => [$oldGramValues['nutrient_secondary_grams'], $newCalc['nutrient_secondary_grams']],
+        ];
+
+        $movementRepo    = new RawMaterialMovementRepository();
+        $rawMaterialRepo = new RawMaterialRepository();
+
+        $applyDiff = function (RawMaterialEntity $mat, float $diff) use (
+            $movementRepo, $rawMaterialRepo, $profileId, $batchId, $recipeNote
+        ): void {
+            if (abs($diff) < 0.000001) {
+                return;
+            }
+
+            $movementData = [
+                'raw_material_id' => $mat->id,
+                'movement_type'   => $diff > 0 ? 'exit' : 'purchase',
+                'quantity'        => abs($diff),
+                'unit'            => $mat->unit->value,
+                'notes'           => "Batch {$batchId} - {$recipeNote} adjustment",
+            ];
+
+            if ($diff < 0) {
+                $movementData['price_per_unit'] = $mat->price_per_unit;
+            }
+
+            $movementRepo->createMovement($profileId, $movementData);
+            $rawMaterialRepo->updateRawMaterial($profileId, $mat->id, [
+                'stock_quantity' => $diff > 0
+                    ? max(0.0, $mat->stock_quantity - abs($diff))
+                    : $mat->stock_quantity + abs($diff),
+            ]);
+        };
+
+        // Base ingredient diff
+        if (isset($foundMaterials[$baseIngredientLabel])) {
+            $mat  = $foundMaterials[$baseIngredientLabel];
+            $diff = $baseQtyConverter($newBaseQty, $mat->unit) - $baseQtyConverter($oldBaseQty, $mat->unit);
+            $applyDiff($mat, $diff);
+        }
+
+        // Gram ingredients diff
+        foreach ($gramEntries as $label => [$oldGrams, $newGrams]) {
+            if (!isset($foundMaterials[$label])) {
+                continue;
+            }
+            $mat  = $foundMaterials[$label];
+            $diff = $gramsToUnit($newGrams ?? 0.0, $mat->unit) - $gramsToUnit($oldGrams ?? 0.0, $mat->unit);
+            $applyDiff($mat, $diff);
+        }
+
+        // Update existing production cost with new quantities
+        $costRepo  = new BatchProductionCostRepository();
+        $costItems = $costRepo->getBatchProductionCostsByBatchId($batchId);
+
+        if (!empty($costItems)) {
+            $rawMaterialCosts = [];
+
+            if (isset($foundMaterials[$baseIngredientLabel])) {
+                $mat = $foundMaterials[$baseIngredientLabel];
+                $qty = $baseQtyConverter($newBaseQty, $mat->unit);
+                $rawMaterialCosts[] = [
+                    'raw_material_id' => $mat->id,
+                    'name'            => $mat->name,
+                    'quantity'        => $qty,
+                    'unit'            => $mat->unit->value,
+                    'price_per_unit'  => $mat->price_per_unit,
+                    'total'           => round($qty * $mat->price_per_unit, 4),
+                ];
+            }
+
+            foreach ($gramEntries as $label => [$oldGrams, $newGrams]) {
+                if (!isset($foundMaterials[$label]) || $newGrams === null) {
+                    continue;
+                }
+                $mat = $foundMaterials[$label];
+                $qty = $gramsToUnit($newGrams, $mat->unit);
+                $rawMaterialCosts[] = [
+                    'raw_material_id' => $mat->id,
+                    'name'            => $mat->name,
+                    'quantity'        => $qty,
+                    'unit'            => $mat->unit->value,
+                    'price_per_unit'  => $mat->price_per_unit,
+                    'total'           => round($qty * $mat->price_per_unit, 4),
+                ];
+            }
+
+            $costRepo->updateBatchProductionCost($costItems[0]->id, [
+                'raw_material_costs' => $rawMaterialCosts,
+                'total_must_liters'  => $newCalc['total_must_liters'],
+            ]);
+        }
+    }
+
+    /**
      * Creates the batch production cost record and registers EXIT movements for each ingredient.
      *
      * @param  string   $batchId

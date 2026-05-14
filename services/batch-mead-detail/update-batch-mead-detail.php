@@ -1,10 +1,14 @@
 <?php
 require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php' : __DIR__ . '/../../vendor/autoload.php';
 
+use App\Common\Helpers\BatchInventoryHelper;
 use App\Common\Helpers\FermentFormula;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 
@@ -23,8 +27,9 @@ const RECALC_TRIGGER_FIELDS = [
 
 return function (array $event) {
 
-    $id   = $event['pathParameters']['id'] ?? null;
-    $body = json_decode($event['body'] ?? '', true);
+    $id        = $event['pathParameters']['id'] ?? null;
+    $body      = json_decode($event['body'] ?? '', true);
+    $inventory = (bool)($body['inventory'] ?? false);
 
     if (empty($id)) {
         return [
@@ -51,6 +56,14 @@ return function (array $event) {
                 'body' => json_encode(['error' => 'Batch mead detail not found'])
             ];
         }
+
+        $doSettle            = false;
+        $profileId           = null;
+        $foundMaterials      = [];
+        $oldBaseQty          = 0.0;
+        $oldGramValues       = [];
+        $newBaseQtyForSettle = 0.0;
+        $newCalcForSettle    = [];
 
         if (!empty(array_intersect(array_keys($body), RECALC_TRIGGER_FIELDS))) {
             $honeyKg           = (float)($body['honey_kg'] ?? $existing->honey_kg);
@@ -100,6 +113,44 @@ return function (array $event) {
             );
 
             $body = array_merge($body, $calc);
+
+            if ($inventory) {
+                $oldBaseQty    = $existing->honey_kg;
+                $oldGramValues = [
+                    'yeast_grams'              => $existing->yeast_grams,
+                    'sorbate_grams_max'        => $existing->sorbate_grams_max,
+                    'metabisulfite_grams'      => $existing->metabisulfite_grams,
+                    'bentonite_grams_max'      => $existing->bentonite_grams_max,
+                    'albumin_grams_max'        => $existing->albumin_grams_max,
+                    'nutrient_primary_grams'   => $existing->nutrient_primary_grams,
+                    'nutrient_secondary_grams' => $existing->nutrient_secondary_grams,
+                ];
+
+                $result = BatchInventoryHelper::checkInventory(
+                    $existing->batch_id,
+                    fn($m) => $m->type === BatchType::MEAD && $m->subtype === BatchSubtype::HONEY,
+                    BatchSubtype::HONEY->value,
+                    $yeastType,
+                    $yeastStrain,
+                    $useSorbate,
+                    $useMetabisulfite,
+                    $useBentonite,
+                    $useAlbumin,
+                    $nutrientPrimary,
+                    $nutrientSecondary,
+                    []
+                );
+
+                if (isset($result['statusCode'])) {
+                    return $result;
+                }
+
+                $profileId           = $result['profile_id'];
+                $foundMaterials      = $result['found_materials'];
+                $newBaseQtyForSettle = $honeyKg;
+                $newCalcForSettle    = $calc;
+                $doSettle            = true;
+            }
         }
 
         $usedLimits = [
@@ -164,7 +215,7 @@ return function (array $event) {
             $batch = $batchRepository->getBatchById($existing->batch_id);
             if ($batch !== null) {
                 $batchRepository->updateBatchStatus($batch->profile_id, $existing->batch_id, BatchStatus::IN_PROCESS->value);
-            
+
                 $fermentationLogRepository = new App\Common\Repositories\FermentationLogRepository();
                 $existingLogs = $fermentationLogRepository->getFermentationLogsByBatchId($existing->batch_id);
                 if ($existingLogs === null) {
@@ -177,6 +228,24 @@ return function (array $event) {
         }
 
         $detail = $repository->updateBatchMeadDetail($id, $body);
+
+        if ($doSettle) {
+            BatchInventoryHelper::settleInventoryUpdate(
+                $existing->batch_id,
+                $profileId,
+                $foundMaterials,
+                BatchSubtype::HONEY->value,
+                $oldBaseQty,
+                $newBaseQtyForSettle,
+                fn(float $qty, RawMaterialUnit $u) => match ($u) {
+                    RawMaterialUnit::G => round($qty * 1000, 2),
+                    default            => $qty,
+                },
+                $oldGramValues,
+                $newCalcForSettle,
+                BatchType::MEAD->value . ' recipe'
+            );
+        }
 
         return [
             'statusCode' => 200,

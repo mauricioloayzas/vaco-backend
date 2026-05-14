@@ -1,10 +1,14 @@
 <?php
 require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php' : __DIR__ . '/../../vendor/autoload.php';
 
+use App\Common\Helpers\BatchInventoryHelper;
 use App\Common\Helpers\FermentFormula;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 
@@ -23,8 +27,9 @@ const SUGARCANE_RECALC_TRIGGER_FIELDS = [
 
 return function (array $event) {
 
-    $id   = $event['pathParameters']['id'] ?? null;
-    $body = json_decode($event['body'] ?? '', true);
+    $id        = $event['pathParameters']['id'] ?? null;
+    $body      = json_decode($event['body'] ?? '', true);
+    $inventory = (bool)($body['inventory'] ?? false);
 
     if (empty($id)) {
         return [
@@ -51,6 +56,14 @@ return function (array $event) {
                 'body' => json_encode(['error' => 'Batch sugar cane wine detail not found'])
             ];
         }
+
+        $doSettle            = false;
+        $profileId           = null;
+        $foundMaterials      = [];
+        $oldBaseQty          = 0.0;
+        $oldGramValues       = [];
+        $newBaseQtyForSettle = 0.0;
+        $newCalcForSettle    = [];
 
         if (!empty(array_intersect(array_keys($body), SUGARCANE_RECALC_TRIGGER_FIELDS))) {
             $juiceLiters      = (float)($body['juice_liters'] ?? $existing->juice_liters);
@@ -100,6 +113,44 @@ return function (array $event) {
             );
 
             $body = array_merge($body, $calc);
+
+            if ($inventory) {
+                $oldBaseQty    = $existing->juice_liters;
+                $oldGramValues = [
+                    'yeast_grams'              => $existing->yeast_grams,
+                    'sorbate_grams_max'        => $existing->sorbate_grams_max,
+                    'metabisulfite_grams'      => $existing->metabisulfite_grams,
+                    'bentonite_grams_max'      => $existing->bentonite_grams_max,
+                    'albumin_grams_max'        => $existing->albumin_grams_max,
+                    'nutrient_primary_grams'   => $existing->nutrient_primary_grams,
+                    'nutrient_secondary_grams' => $existing->nutrient_secondary_grams,
+                ];
+
+                $result = BatchInventoryHelper::checkInventory(
+                    $existing->batch_id,
+                    fn($m) => $m->type === BatchType::SUGARCANE && $m->subtype === BatchSubtype::CANE_JUICE,
+                    BatchSubtype::CANE_JUICE->value,
+                    $yeastType,
+                    $yeastStrain,
+                    $useSorbate,
+                    $useMetabisulfite,
+                    $useBentonite,
+                    $useAlbumin,
+                    $nutrientPrimary,
+                    $nutrientSecondary,
+                    []
+                );
+
+                if (isset($result['statusCode'])) {
+                    return $result;
+                }
+
+                $profileId           = $result['profile_id'];
+                $foundMaterials      = $result['found_materials'];
+                $newBaseQtyForSettle = $juiceLiters;
+                $newCalcForSettle    = $calc;
+                $doSettle            = true;
+            }
         }
 
         $usedLimits = [
@@ -177,6 +228,24 @@ return function (array $event) {
         }
 
         $detail = $repository->updateBatchSugarCaneWineDetail($id, $body);
+
+        if ($doSettle) {
+            BatchInventoryHelper::settleInventoryUpdate(
+                $existing->batch_id,
+                $profileId,
+                $foundMaterials,
+                BatchSubtype::CANE_JUICE->value,
+                $oldBaseQty,
+                $newBaseQtyForSettle,
+                fn(float $qty, RawMaterialUnit $u) => match ($u) {
+                    RawMaterialUnit::ML => round($qty * 1000, 2),
+                    default             => $qty,
+                },
+                $oldGramValues,
+                $newCalcForSettle,
+                BatchType::SUGARCANE->value . ' recipe'
+            );
+        }
 
         return [
             'statusCode' => 200,
