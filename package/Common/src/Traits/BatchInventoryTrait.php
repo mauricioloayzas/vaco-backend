@@ -163,7 +163,8 @@ trait BatchInventoryTrait
         callable $baseQtyConverter,
         array    $oldGramValues,
         array    $newCalc,
-        string   $recipeNote
+        string   $recipeNote,
+        array    $foundTools = []
     ): void {
         $gramsToUnit = fn(float $g, RawMaterialUnit $u): float => match ($u) {
             RawMaterialUnit::KG => round($g / 1000, 6),
@@ -263,10 +264,26 @@ trait BatchInventoryTrait
                 ];
             }
 
-            $costRepo->updateBatchProductionCost($costItems[0]->id, [
+            $toolCosts = [];
+            foreach ($foundTools as $data) {
+                $tool        = $data['entity'];
+                $toolCosts[] = [
+                    'tool_id'             => $tool->id,
+                    'name'                => $tool->name,
+                    'depreciation_method' => $tool->depreciation_method->value,
+                    'depreciation_amount' => $data['depreciation'],
+                ];
+            }
+
+            $updateData = [
                 'raw_material_costs' => $rawMaterialCosts,
                 'total_must_liters'  => $newCalc['total_must_liters'],
-            ]);
+            ];
+            if (!empty($toolCosts)) {
+                $updateData['tool_costs'] = $toolCosts;
+            }
+
+            $costRepo->updateBatchProductionCost($costItems[0]->id, $updateData);
         }
     }
 

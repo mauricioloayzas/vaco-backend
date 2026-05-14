@@ -60,6 +60,7 @@ return function (array $event) {
         $doSettle            = false;
         $profileId           = null;
         $foundMaterials      = [];
+        $foundTools          = [];
         $oldBaseQty          = 0.0;
         $oldGramValues       = [];
         $newBaseQtyForSettle = 0.0;
@@ -138,7 +139,7 @@ return function (array $event) {
                     $useAlbumin,
                     $nutrientPrimary,
                     $nutrientSecondary,
-                    []
+                    $body['tool_ids'] ?? []
                 );
 
                 if (isset($result['statusCode'])) {
@@ -147,6 +148,7 @@ return function (array $event) {
 
                 $profileId           = $result['profile_id'];
                 $foundMaterials      = $result['found_materials'];
+                $foundTools          = $result['found_tools'];
                 $newBaseQtyForSettle = $honeyKg;
                 $newCalcForSettle    = $calc;
                 $doSettle            = true;
@@ -243,7 +245,8 @@ return function (array $event) {
                 },
                 $oldGramValues,
                 $newCalcForSettle,
-                BatchType::MEAD->value . ' recipe'
+                BatchType::MEAD->value . ' recipe',
+                $foundTools
             );
         }
 

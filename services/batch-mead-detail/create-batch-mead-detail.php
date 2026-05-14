@@ -3,6 +3,7 @@ require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php
 
 use App\Common\Helpers\BatchInventoryHelper;
 use App\Common\Helpers\FermentFormula;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
@@ -136,6 +137,12 @@ return function (array $event) {
     );
 
     try {
+
+        $batchRepository = new App\Common\Repositories\BatchRepository();
+        $batch = $batchRepository->getBatchById($batchId);
+        if ($batch !== null && $batch->status === BatchStatus::BEGIN) {
+            $batchRepository->updateBatchStatus($batch->profile_id, $batchId, BatchStatus::IN_PROCESS->value);
+        }
 
         $repository = new App\Common\Repositories\BatchMeadDetailRepository();
         $detail = $repository->createBatchMeadDetail(array_merge([
