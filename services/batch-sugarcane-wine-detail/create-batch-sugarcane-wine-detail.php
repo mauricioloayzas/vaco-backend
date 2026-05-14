@@ -1,16 +1,21 @@
 <?php
 require_once file_exists('/opt/vendor/autoload.php') ? '/opt/vendor/autoload.php' : __DIR__ . '/../../vendor/autoload.php';
 
+use App\Common\Helpers\BatchInventoryHelper;
 use App\Common\Helpers\FermentFormula;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 
 return function (array $event) {
 
-    $batchId = $event['pathParameters']['batch_id'] ?? null;
-    $body    = json_decode($event['body'] ?? '', true);
+    $batchId   = $event['pathParameters']['batch_id'] ?? null;
+    $body      = json_decode($event['body'] ?? '', true);
+    $inventory = (bool)($body['inventory'] ?? false);
 
     if (empty($batchId)) {
         return [
@@ -83,6 +88,40 @@ return function (array $event) {
         $metabisulfiteType = $body['metabisulfite_type'];
     }
 
+    $foundMaterials = [];
+    $foundTools     = [];
+    $profileId      = null;
+
+    if ($inventory) {
+        try {
+            $result = BatchInventoryHelper::checkInventory(
+                $batchId,
+                fn($m) => $m->type === BatchType::SUGARCANE && $m->subtype === BatchSubtype::CANE_JUICE,
+                BatchSubtype::CANE_JUICE->value,
+                $yeastTypeStr,
+                $yeastStrainStr,
+                $useSorbate,
+                $useMetabisulfite,
+                $useBentonite,
+                $useAlbumin,
+                $nutrientPrimary,
+                $nutrientSecondary,
+                $body['tool_ids'] ?? []
+            );
+
+            if (isset($result['statusCode'])) {
+                return $result;
+            }
+
+            $profileId      = $result['profile_id'];
+            $foundMaterials = $result['found_materials'];
+            $foundTools     = $result['found_tools'];
+
+        } catch (Exception $e) {
+            return ['statusCode' => 500, 'body' => json_encode(['error' => $e->getMessage()])];
+        }
+    }
+
     $calc = FermentFormula::calculateSugarCaneWineDetails(
         $juiceLiters,
         $sugarcaneBrix,
@@ -117,6 +156,23 @@ return function (array $event) {
             'use_bentonite'      => $useBentonite,
             'use_albumin'        => $useAlbumin,
         ], $calc), $batchId);
+
+        if ($inventory) {
+            BatchInventoryHelper::settleInventory(
+                $batchId,
+                $profileId,
+                $foundMaterials,
+                $foundTools,
+                BatchSubtype::CANE_JUICE->value,
+                $juiceLiters,
+                fn(float $qty, RawMaterialUnit $u) => match ($u) {
+                    RawMaterialUnit::ML => round($qty * 1000, 2),
+                    default             => $qty,
+                },
+                $calc,
+                BatchType::SUGARCANE->value . ' recipe'
+            );
+        }
 
         return [
             'statusCode' => 201,
