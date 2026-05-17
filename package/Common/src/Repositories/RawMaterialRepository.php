@@ -11,6 +11,7 @@ use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialCategory;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\StabilizerType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\SweetenerType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 use Mauloasan\BobConstruye\DynamoDB\DynamoDbClientFactory;
@@ -118,7 +119,9 @@ class RawMaterialRepository
             'updated_at'     => null,
         ];
 
-        foreach (['type', 'subtype', 'yeast_type', 'yeast_strain', 'nutrient_type', 'stabilizer_type', 'metabisulfite_type', 'clarifier_type'] as $field) {
+        $item['is_water'] = isset($data['is_water']) && $data['is_water'] === true;
+
+        foreach (['type', 'subtype', 'yeast_type', 'yeast_strain', 'nutrient_type', 'stabilizer_type', 'metabisulfite_type', 'clarifier_type', 'sweetener_type'] as $field) {
             if (isset($data[$field])) {
                 $item[$field] = $data[$field];
             }
@@ -208,6 +211,9 @@ class RawMaterialRepository
         }
         if (isset($data['clarifier_type']) && ClarifierType::tryFrom($data['clarifier_type']) === null) {
             throw new \InvalidArgumentException('Invalid clarifier_type provided.');
+        }
+        if (isset($data['sweetener_type']) && SweetenerType::tryFrom($data['sweetener_type']) === null) {
+            throw new \InvalidArgumentException('Invalid sweetener_type provided.');
         }
     }
 }

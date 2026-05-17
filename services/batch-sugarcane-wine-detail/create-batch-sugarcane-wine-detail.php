@@ -6,6 +6,7 @@ use App\Common\Helpers\FermentFormula;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\FermentationPhProfile;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
@@ -89,39 +90,13 @@ return function (array $event) {
         $metabisulfiteType = $body['metabisulfite_type'];
     }
 
+    if (!empty($body['ph_profile']) && FermentationPhProfile::tryFrom($body['ph_profile']) === null) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid ph_profile'])];
+    }
+
     $foundMaterials = [];
     $foundTools     = [];
     $profileId      = null;
-
-    if ($inventory) {
-        try {
-            $result = BatchInventoryHelper::checkInventory(
-                $batchId,
-                fn($m) => $m->type === BatchType::SUGARCANE && $m->subtype === BatchSubtype::CANE_JUICE,
-                BatchSubtype::CANE_JUICE->value,
-                $yeastTypeStr,
-                $yeastStrainStr,
-                $useSorbate,
-                $useMetabisulfite,
-                $useBentonite,
-                $useAlbumin,
-                $nutrientPrimary,
-                $nutrientSecondary,
-                $body['tool_ids'] ?? []
-            );
-
-            if (isset($result['statusCode'])) {
-                return $result;
-            }
-
-            $profileId      = $result['profile_id'];
-            $foundMaterials = $result['found_materials'];
-            $foundTools     = $result['found_tools'];
-
-        } catch (Exception $e) {
-            return ['statusCode' => 500, 'body' => json_encode(['error' => $e->getMessage()])];
-        }
-    }
 
     $calc = FermentFormula::calculateSugarCaneWineDetails(
         $juiceLiters,
@@ -138,6 +113,42 @@ return function (array $event) {
         $useBentonite,
         $useAlbumin
     );
+
+    if ($inventory) {
+        try {
+            $requiredQtys = BatchInventoryHelper::buildRequiredQuantities(
+                BatchSubtype::CANE_JUICE->value, $juiceLiters, RawMaterialUnit::L, $calc
+            );
+
+            $result = BatchInventoryHelper::checkInventory(
+                $batchId,
+                fn($m) => $m->type === BatchType::SUGARCANE && $m->subtype === BatchSubtype::CANE_JUICE,
+                BatchSubtype::CANE_JUICE->value,
+                $yeastTypeStr,
+                $yeastStrainStr,
+                $useSorbate,
+                $useMetabisulfite,
+                $useBentonite,
+                $useAlbumin,
+                $nutrientPrimary,
+                $nutrientSecondary,
+                $body['tool_ids'] ?? [],
+                $calc['water_liters'],
+                $requiredQtys
+            );
+
+            if (isset($result['statusCode'])) {
+                return $result;
+            }
+
+            $profileId      = $result['profile_id'];
+            $foundMaterials = $result['found_materials'];
+            $foundTools     = $result['found_tools'];
+
+        } catch (Exception $e) {
+            return ['statusCode' => 500, 'body' => json_encode(['error' => $e->getMessage()])];
+        }
+    }
 
     try {
 
@@ -162,6 +173,9 @@ return function (array $event) {
             'metabisulfite_type' => $metabisulfiteType,
             'use_bentonite'      => $useBentonite,
             'use_albumin'        => $useAlbumin,
+            'initial_ph'         => isset($body['initial_ph']) ? (float)$body['initial_ph'] : null,
+            'ph_profile'         => $body['ph_profile'] ?? null,
+            'ph_measured'        => isset($body['ph_measured']) ? (float)$body['ph_measured'] : null,
         ], $calc), $batchId);
 
         if ($inventory) {

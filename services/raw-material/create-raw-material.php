@@ -23,6 +23,7 @@ return function (array $event) {
         'nutriente'        => ['nutrient_type'],
         'estabilizador'    => ['stabilizer_type'],
         'clarificante'     => ['clarifier_type'],
+        'edulcorante'      => ['sweetener_type'],
         'otro'             => [],
     ];
 
@@ -31,7 +32,12 @@ return function (array $event) {
         return ['statusCode' => 400, 'body' => json_encode(['error' => "Invalid category: {$category}"])];
     }
 
+    $isWater = $category === 'ingrediente_base' && isset($body['is_water']) && $body['is_water'] === true;
+
     foreach ($categoryRequiredFields[$category] as $field) {
+        if ($isWater && in_array($field, ['type', 'subtype'])) {
+            continue;
+        }
         if (!isset($body[$field]) || $body[$field] === '') {
             return ['statusCode' => 400, 'body' => json_encode(['error' => "Missing required field for category '{$category}': {$field}"])];
         }

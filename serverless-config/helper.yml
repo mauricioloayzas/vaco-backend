@@ -165,3 +165,27 @@ helper-get-stabilizer-types:
         method: GET
         path: /helper/stabilizer-types
         authorizer: cognitoAuthorizer
+
+helper-get-fermentation-ph-profiles:
+  handler: services/helper/get-fermentation-ph-profiles.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los perfiles de pH de fermentación disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/fermentation-ph-profiles
+        authorizer: cognitoAuthorizer
+
+helper-get-sweetener-types:
+  handler: services/helper/get-sweetener-types.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los tipos de edulcorante disponibles"
+  events:
+    - httpApi:
+        method: GET
+        path: /helper/sweetener-types
+        authorizer: cognitoAuthorizer

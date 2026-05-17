@@ -4,6 +4,7 @@ namespace App\Common\Repositories;
 
 use Mauloasan\BobConstruye\DynamoDB\Entities\Vaco\BatchSugarCaneWineDetailEntity;
 use Mauloasan\BobConstruye\DynamoDB\DynamoDbClientFactory;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\FermentationPhProfile;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
@@ -83,6 +84,14 @@ class BatchSugarCaneWineDetailRepository
             throw new \InvalidArgumentException('Invalid metabisulfite_type provided.');
         }
 
+        if (isset($data['ph_profile']) && FermentationPhProfile::tryFrom($data['ph_profile']) === null) {
+            throw new \InvalidArgumentException('Invalid ph_profile provided.');
+        }
+
+        $phProfile = isset($data['ph_profile'])
+            ? FermentationPhProfile::from($data['ph_profile'])
+            : FermentationPhProfile::CANE_JUICE;
+
         $item = [
             'id'                       => $id,
             'batch_id'                 => $batchId,
@@ -119,6 +128,11 @@ class BatchSugarCaneWineDetailRepository
             'bentonite_grams_max'      => isset($data['bentonite_grams_max']) ? (float)$data['bentonite_grams_max'] : null,
             'albumin_grams_min'        => isset($data['albumin_grams_min']) ? (float)$data['albumin_grams_min'] : null,
             'albumin_grams_max'        => isset($data['albumin_grams_max']) ? (float)$data['albumin_grams_max'] : null,
+            'initial_ph'               => isset($data['initial_ph']) ? (float)$data['initial_ph'] : null,
+            'ph_profile'               => $phProfile->value,
+            'target_ph_min'            => $phProfile->phMin(),
+            'target_ph_max'            => $phProfile->phMax(),
+            'ph_measured'              => isset($data['ph_measured']) ? (float)$data['ph_measured'] : null,
             'created_at'               => date('c'),
             'updated_at'               => null,
         ];
@@ -133,6 +147,15 @@ class BatchSugarCaneWineDetailRepository
 
     public function updateBatchSugarCaneWineDetail(string $id, array $data): ?BatchSugarCaneWineDetailEntity
     {
+        if (isset($data['ph_profile'])) {
+            if (FermentationPhProfile::tryFrom($data['ph_profile']) === null) {
+                throw new \InvalidArgumentException('Invalid ph_profile provided.');
+            }
+            $phProfile = FermentationPhProfile::from($data['ph_profile']);
+            $data['target_ph_min'] = $phProfile->phMin();
+            $data['target_ph_max'] = $phProfile->phMax();
+        }
+
         $updateExpression          = 'SET ';
         $expressionAttributeValues = [];
         $expressionAttributeNames  = [];

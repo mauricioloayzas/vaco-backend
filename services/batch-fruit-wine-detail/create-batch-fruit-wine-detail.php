@@ -5,11 +5,11 @@ use App\Common\Helpers\BatchInventoryHelper;
 use App\Common\Helpers\FermentFormula;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchStatus;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchSubtype;
-use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\BatchType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\FermentationPhProfile;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\MetabisulfiteType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\NutrientType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\RawMaterialUnit;
+use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\SweetenerType;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastStrain;
 use Mauloasan\BobConstruye\DynamoDB\Enums\Vaco\YeastType;
 
@@ -26,7 +26,7 @@ return function (array $event) {
         ];
     }
 
-    $required = ['honey_kg', 'initial_brix', 'final_brix_desired', 'yeast_type', 'yeast_strain'];
+    $required = ['fruit_type', 'fruit_kg', 'fruit_brix', 'initial_brix', 'final_brix_desired', 'yeast_type', 'yeast_strain'];
     foreach ($required as $field) {
         if (!isset($body[$field]) || $body[$field] === '') {
             return [
@@ -36,11 +36,19 @@ return function (array $event) {
         }
     }
 
-    $honeyKg        = (float)$body['honey_kg'];
+    if (BatchSubtype::tryFrom($body['fruit_type']) === null) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid fruit_type'])];
+    }
+
+    $fruitTypeEnum  = BatchSubtype::from($body['fruit_type']);
+    $fruitKg        = (float)$body['fruit_kg'];
+    $fruitBrix      = (float)$body['fruit_brix'];
     $initialBrix    = (float)$body['initial_brix'];
     $finalBrixDes   = (float)$body['final_brix_desired'];
     $yeastTypeStr   = $body['yeast_type'];
     $yeastStrainStr = $body['yeast_strain'];
+    $sugarKg        = isset($body['sweetener_kg']) ? (float)$body['sweetener_kg'] : null;
+    $sweetenerType  = $body['sweetener_type'] ?? null;
 
     if (YeastType::tryFrom($yeastTypeStr) === null) {
         return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid yeast_type'])];
@@ -48,8 +56,14 @@ return function (array $event) {
     if (YeastStrain::tryFrom($yeastStrainStr) === null) {
         return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid yeast_strain'])];
     }
-    if ($initialBrix >= 80.0) {
-        return ['statusCode' => 400, 'body' => json_encode(['error' => 'initial_brix must be less than honey_brix'])];
+    if ($fruitKg <= 0) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'fruit_kg must be greater than 0'])];
+    }
+    if ($fruitBrix <= 0 || $fruitBrix > 100) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'fruit_brix must be between 1 and 100'])];
+    }
+    if ($initialBrix <= 0 || $initialBrix > 100) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'initial_brix must be between 1 and 100'])];
     }
 
     $useSorbate       = (bool)($body['use_sorbate'] ?? false);
@@ -87,6 +101,10 @@ return function (array $event) {
         $metabisulfiteType = $body['metabisulfite_type'];
     }
 
+    if ($sweetenerType !== null && SweetenerType::tryFrom($sweetenerType) === null) {
+        return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid sweetener_type'])];
+    }
+
     if (!empty($body['ph_profile']) && FermentationPhProfile::tryFrom($body['ph_profile']) === null) {
         return ['statusCode' => 400, 'body' => json_encode(['error' => 'Invalid ph_profile'])];
     }
@@ -95,8 +113,10 @@ return function (array $event) {
     $foundTools     = [];
     $profileId      = null;
 
-    $calc = FermentFormula::calculateMeadDetails(
-        $honeyKg,
+    $calc = FermentFormula::calculateFruitWineDetails(
+        $fruitTypeEnum,
+        $fruitKg,
+        $fruitBrix,
         $initialBrix,
         $finalBrixDes,
         $yeastStrainStr,
@@ -108,19 +128,24 @@ return function (array $event) {
         $useMetabisulfite,
         $metabisulfiteType,
         $useBentonite,
-        $useAlbumin
+        $useAlbumin,
+        $sugarKg
     );
 
     if ($inventory) {
         try {
+            if (($calc['sweetener_kg'] ?? 0) > 0 && $sweetenerType === null) {
+                return ['statusCode' => 400, 'body' => json_encode(['error' => 'sweetener_type is required when sugar is added to the recipe'])];
+            }
+
             $requiredQtys = BatchInventoryHelper::buildRequiredQuantities(
-                BatchSubtype::HONEY->value, $honeyKg, RawMaterialUnit::KG, $calc
+                $fruitTypeEnum->value, $fruitKg, RawMaterialUnit::KG, $calc
             );
 
             $result = BatchInventoryHelper::checkInventory(
                 $batchId,
-                fn($m) => $m->type === BatchType::MEAD && $m->subtype === BatchSubtype::HONEY,
-                BatchSubtype::HONEY->value,
+                fn($m) => $m->subtype === $fruitTypeEnum,
+                $fruitTypeEnum->value,
                 $yeastTypeStr,
                 $yeastStrainStr,
                 $useSorbate,
@@ -131,7 +156,8 @@ return function (array $event) {
                 $nutrientSecondary,
                 $body['tool_ids'] ?? [],
                 $calc['water_liters'],
-                $requiredQtys
+                $requiredQtys,
+                $sweetenerType
             );
 
             if (isset($result['statusCode'])) {
@@ -155,13 +181,17 @@ return function (array $event) {
             $batchRepository->updateBatchStatus($batch->profile_id, $batchId, BatchStatus::IN_PROCESS->value);
         }
 
-        $repository = new App\Common\Repositories\BatchMeadDetailRepository();
-        $detail = $repository->createBatchMeadDetail(array_merge([
-            'honey_kg'           => $honeyKg,
+        $repository = new App\Common\Repositories\BatchFruitWineDetailRepository();
+        $detail = $repository->createBatchFruitWineDetail(array_merge([
+            'fruit_type'         => $fruitTypeEnum->value,
+            'fruit_kg'           => $fruitKg,
+            'fruit_brix'         => $fruitBrix,
             'initial_brix'       => $initialBrix,
             'final_brix_desired' => max(1.0, $finalBrixDes),
             'yeast_type'         => $yeastTypeStr,
             'yeast_strain'       => $yeastStrainStr,
+            'sweetener_type'     => $sweetenerType,
+            'sweetener_kg'       => $sugarKg,
             'nutrient_primary'   => $nutrientPrimary,
             'nutrient_secondary' => $nutrientSecondary,
             'use_sorbate'        => $useSorbate,
@@ -181,14 +211,14 @@ return function (array $event) {
                 $profileId,
                 $foundMaterials,
                 $foundTools,
-                BatchSubtype::HONEY->value,
-                $honeyKg,
+                $fruitTypeEnum->value,
+                $fruitKg,
                 fn(float $qty, RawMaterialUnit $u) => match ($u) {
                     RawMaterialUnit::G => round($qty * 1000, 2),
                     default            => $qty,
                 },
                 $calc,
-                BatchType::MEAD->value . ' recipe'
+                $fruitTypeEnum->value . ' wine recipe'
             );
         }
 

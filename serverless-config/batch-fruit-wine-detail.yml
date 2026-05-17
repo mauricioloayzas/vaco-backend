@@ -1,0 +1,59 @@
+batch-fruit-wine-detail-get-by-batch:
+  handler: services/batch-fruit-wine-detail/get-batch-fruit-wine-details-by-batch-id.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los detalles de vino de frutas de un lote"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch/{batch_id}/fruit-wine-detail
+        authorizer: cognitoAuthorizer
+
+batch-fruit-wine-detail-get:
+  handler: services/batch-fruit-wine-detail/get-batch-fruit-wine-detail.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene un detalle de vino de frutas por ID"
+  events:
+    - httpApi:
+        method: GET
+        path: /batch-fruit-wine-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-fruit-wine-detail-create:
+  handler: services/batch-fruit-wine-detail/create-batch-fruit-wine-detail.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Crea el detalle de vino de frutas para un lote"
+  events:
+    - httpApi:
+        method: POST
+        path: /batch/{batch_id}/fruit-wine-detail
+        authorizer: cognitoAuthorizer
+
+batch-fruit-wine-detail-update:
+  handler: services/batch-fruit-wine-detail/update-batch-fruit-wine-detail.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Actualiza un detalle de vino de frutas por ID"
+  events:
+    - httpApi:
+        method: PUT
+        path: /batch-fruit-wine-detail/{id}
+        authorizer: cognitoAuthorizer
+
+batch-fruit-wine-detail-delete:
+  handler: services/batch-fruit-wine-detail/delete-batch-fruit-wine-detail.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Elimina un detalle de vino de frutas por ID"
+  events:
+    - httpApi:
+        method: DELETE
+        path: /batch-fruit-wine-detail/{id}
+        authorizer: cognitoAuthorizer

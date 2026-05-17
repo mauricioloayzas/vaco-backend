@@ -44,7 +44,10 @@ trait BatchInventoryTrait
         bool     $useAlbumin,
         ?string  $nutrientPrimary,
         ?string  $nutrientSecondary,
-        array    $toolIds
+        array    $toolIds,
+        float    $waterLiters = 0.0,
+        array    $requiredQuantities = [],
+        ?string  $sweetenerType = null
     ): array {
         $batch = (new BatchRepository())->getBatchById($batchId);
 
@@ -64,11 +67,20 @@ trait BatchInventoryTrait
 
         $foundMaterials = [];
 
-        $findAndCheck = function (string $label, callable $matcher) use ($allMaterials, &$foundMaterials): ?array {
+        $findAndCheck = function (string $label, callable $matcher) use ($allMaterials, &$foundMaterials, $requiredQuantities): ?array {
             foreach ($allMaterials as $mat) {
                 if ($matcher($mat)) {
                     if ($mat->stock_quantity <= 0) {
                         return ['statusCode' => 400, 'body' => json_encode(['error' => "Insufficient stock for: {$label}"])];
+                    }
+                    if (isset($requiredQuantities[$label])) {
+                        [$reqQty, $fromUnit] = $requiredQuantities[$label];
+                        $needed = self::convertToUnit($reqQty, $fromUnit, $mat->unit);
+                        if ($mat->stock_quantity < $needed) {
+                            return ['statusCode' => 400, 'body' => json_encode([
+                                'error' => "Insufficient stock for: {$label}. Required: {$needed} {$mat->unit->value}, available: {$mat->stock_quantity} {$mat->unit->value}",
+                            ])];
+                        }
                     }
                     $foundMaterials[$label] = $mat;
                     return null;
@@ -107,6 +119,14 @@ trait BatchInventoryTrait
         if ($nutrientSecondary !== null) {
             $checks['nutrient_secondary'] = fn($m) => $m->category === RawMaterialCategory::NUTRIENTE
                 && $m->nutrient_type?->value === $nutrientSecondary;
+        }
+        if ($waterLiters > 0) {
+            $checks['water'] = fn($m) => $m->category === RawMaterialCategory::INGREDIENTE_BASE
+                && $m->is_water === true;
+        }
+        if ($sweetenerType !== null) {
+            $checks['sweetener'] = fn($m) => $m->category === RawMaterialCategory::EDULCORANTE
+                && $m->sweetener_type?->value === $sweetenerType;
         }
 
         foreach ($checks as $label => $matcher) {
@@ -228,6 +248,21 @@ trait BatchInventoryTrait
             $applyDiff($mat, $diff);
         }
 
+        // Water diff (already in liters)
+        if (isset($foundMaterials['water'])) {
+            $oldWater = (float)($oldGramValues['water_liters'] ?? 0.0);
+            $newWater = (float)($newCalc['water_liters'] ?? 0.0);
+            $applyDiff($foundMaterials['water'], $newWater - $oldWater);
+        }
+
+        // Sweetener diff (in KG, converted to material unit)
+        if (isset($foundMaterials['sweetener'])) {
+            $mat      = $foundMaterials['sweetener'];
+            $oldSugar = self::convertToUnit((float)($oldGramValues['sweetener_kg'] ?? 0.0), RawMaterialUnit::KG, $mat->unit);
+            $newSugar = self::convertToUnit((float)($newCalc['sweetener_kg'] ?? 0.0), RawMaterialUnit::KG, $mat->unit);
+            $applyDiff($mat, $newSugar - $oldSugar);
+        }
+
         // Update existing production cost with new quantities
         $costRepo  = new BatchProductionCostRepository();
         $costItems = $costRepo->getBatchProductionCostsByBatchId($batchId);
@@ -254,6 +289,32 @@ trait BatchInventoryTrait
                 }
                 $mat = $foundMaterials[$label];
                 $qty = $gramsToUnit($newGrams, $mat->unit);
+                $rawMaterialCosts[] = [
+                    'raw_material_id' => $mat->id,
+                    'name'            => $mat->name,
+                    'quantity'        => $qty,
+                    'unit'            => $mat->unit->value,
+                    'price_per_unit'  => $mat->price_per_unit,
+                    'total'           => round($qty * $mat->price_per_unit, 4),
+                ];
+            }
+
+            if (isset($foundMaterials['water']) && ($newCalc['water_liters'] ?? 0) > 0) {
+                $mat = $foundMaterials['water'];
+                $qty = (float)$newCalc['water_liters'];
+                $rawMaterialCosts[] = [
+                    'raw_material_id' => $mat->id,
+                    'name'            => $mat->name,
+                    'quantity'        => $qty,
+                    'unit'            => $mat->unit->value,
+                    'price_per_unit'  => $mat->price_per_unit,
+                    'total'           => round($qty * $mat->price_per_unit, 4),
+                ];
+            }
+
+            if (isset($foundMaterials['sweetener']) && ($newCalc['sweetener_kg'] ?? 0) > 0) {
+                $mat = $foundMaterials['sweetener'];
+                $qty = self::convertToUnit((float)$newCalc['sweetener_kg'], RawMaterialUnit::KG, $mat->unit);
                 $rawMaterialCosts[] = [
                     'raw_material_id' => $mat->id,
                     'name'            => $mat->name,
@@ -359,6 +420,32 @@ trait BatchInventoryTrait
             ];
         }
 
+        if (isset($foundMaterials['water']) && ($calc['water_liters'] ?? 0) > 0) {
+            $mat = $foundMaterials['water'];
+            $qty = (float)$calc['water_liters'];
+            $rawMaterialCosts[] = [
+                'raw_material_id' => $mat->id,
+                'name'            => $mat->name,
+                'quantity'        => $qty,
+                'unit'            => $mat->unit->value,
+                'price_per_unit'  => $mat->price_per_unit,
+                'total'           => round($qty * $mat->price_per_unit, 4),
+            ];
+        }
+
+        if (isset($foundMaterials['sweetener']) && ($calc['sweetener_kg'] ?? 0) > 0) {
+            $mat = $foundMaterials['sweetener'];
+            $qty = self::convertToUnit((float)$calc['sweetener_kg'], RawMaterialUnit::KG, $mat->unit);
+            $rawMaterialCosts[] = [
+                'raw_material_id' => $mat->id,
+                'name'            => $mat->name,
+                'quantity'        => $qty,
+                'unit'            => $mat->unit->value,
+                'price_per_unit'  => $mat->price_per_unit,
+                'total'           => round($qty * $mat->price_per_unit, 4),
+            ];
+        }
+
         $toolCosts = [];
         foreach ($foundTools as $data) {
             $tool        = $data['entity'];
@@ -421,5 +508,66 @@ trait BatchInventoryTrait
             $mat = $foundMaterials[$label];
             $registerExit($mat, $gramsToUnit($grams, $mat->unit));
         }
+
+        if (isset($foundMaterials['water']) && ($calc['water_liters'] ?? 0) > 0) {
+            $registerExit($foundMaterials['water'], (float)$calc['water_liters']);
+        }
+
+        if (isset($foundMaterials['sweetener']) && ($calc['sweetener_kg'] ?? 0) > 0) {
+            $mat = $foundMaterials['sweetener'];
+            $registerExit($mat, self::convertToUnit((float)$calc['sweetener_kg'], RawMaterialUnit::KG, $mat->unit));
+        }
+    }
+
+    /**
+     * Builds the required-quantities map from a recipe calc array.
+     * Each entry: [float $qty, RawMaterialUnit $fromUnit]
+     */
+    public static function buildRequiredQuantities(
+        string          $baseLabel,
+        float           $baseQty,
+        RawMaterialUnit $baseUnit,
+        array           $calc
+    ): array {
+        $qtys = [
+            $baseLabel => [$baseQty, $baseUnit],
+            'yeast'    => [$calc['yeast_grams'], RawMaterialUnit::G],
+        ];
+
+        $gramFields = [
+            'sorbate'            => 'sorbate_grams_max',
+            'metabisulfite'      => 'metabisulfite_grams',
+            'bentonite'          => 'bentonite_grams_max',
+            'albumin'            => 'albumin_grams_max',
+            'nutrient_primary'   => 'nutrient_primary_grams',
+            'nutrient_secondary' => 'nutrient_secondary_grams',
+        ];
+
+        foreach ($gramFields as $label => $calcKey) {
+            if (!empty($calc[$calcKey])) {
+                $qtys[$label] = [$calc[$calcKey], RawMaterialUnit::G];
+            }
+        }
+
+        if (!empty($calc['water_liters'])) {
+            $qtys['water'] = [$calc['water_liters'], RawMaterialUnit::L];
+        }
+        if (!empty($calc['sweetener_kg'])) {
+            $qtys['sweetener'] = [$calc['sweetener_kg'], RawMaterialUnit::KG];
+        }
+
+        return $qtys;
+    }
+
+    private static function convertToUnit(float $qty, RawMaterialUnit $from, RawMaterialUnit $to): float
+    {
+        if ($from === $to) {
+            return $qty;
+        }
+        if ($from === RawMaterialUnit::G  && $to === RawMaterialUnit::KG) return round($qty / 1000, 6);
+        if ($from === RawMaterialUnit::KG && $to === RawMaterialUnit::G)  return round($qty * 1000, 2);
+        if ($from === RawMaterialUnit::L  && $to === RawMaterialUnit::ML) return round($qty * 1000, 2);
+        if ($from === RawMaterialUnit::ML && $to === RawMaterialUnit::L)  return round($qty / 1000, 6);
+        return $qty;
     }
 }

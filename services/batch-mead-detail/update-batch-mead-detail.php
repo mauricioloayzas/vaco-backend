@@ -125,7 +125,12 @@ return function (array $event) {
                     'albumin_grams_max'        => $existing->albumin_grams_max,
                     'nutrient_primary_grams'   => $existing->nutrient_primary_grams,
                     'nutrient_secondary_grams' => $existing->nutrient_secondary_grams,
+                    'water_liters'             => $existing->water_liters,
                 ];
+
+                $requiredQtys = BatchInventoryHelper::buildRequiredQuantities(
+                    BatchSubtype::HONEY->value, $honeyKg, RawMaterialUnit::KG, $calc
+                );
 
                 $result = BatchInventoryHelper::checkInventory(
                     $existing->batch_id,
@@ -139,7 +144,9 @@ return function (array $event) {
                     $useAlbumin,
                     $nutrientPrimary,
                     $nutrientSecondary,
-                    $body['tool_ids'] ?? []
+                    $body['tool_ids'] ?? [],
+                    $calc['water_liters'],
+                    $requiredQtys
                 );
 
                 if (isset($result['statusCode'])) {
