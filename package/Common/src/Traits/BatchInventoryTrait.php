@@ -47,7 +47,8 @@ trait BatchInventoryTrait
         array    $toolIds,
         float    $waterLiters = 0.0,
         array    $requiredQuantities = [],
-        ?string  $sweetenerType = null
+        ?string  $sweetenerType = null,
+        bool     $validateStock = true
     ): array {
         $batch = (new BatchRepository())->getBatchById($batchId);
 
@@ -67,26 +68,31 @@ trait BatchInventoryTrait
 
         $foundMaterials = [];
 
-        $findAndCheck = function (string $label, callable $matcher) use ($allMaterials, &$foundMaterials, $requiredQuantities): ?array {
+        $findAndCheck = function (string $label, callable $matcher) use ($allMaterials, &$foundMaterials, $requiredQuantities, $validateStock): ?array {
             foreach ($allMaterials as $mat) {
                 if ($matcher($mat)) {
-                    if ($mat->stock_quantity <= 0) {
-                        return ['statusCode' => 400, 'body' => json_encode(['error' => "Insufficient stock for: {$label}"])];
-                    }
-                    if (isset($requiredQuantities[$label])) {
-                        [$reqQty, $fromUnit] = $requiredQuantities[$label];
-                        $needed = self::convertToUnit($reqQty, $fromUnit, $mat->unit);
-                        if ($mat->stock_quantity < $needed) {
-                            return ['statusCode' => 400, 'body' => json_encode([
-                                'error' => "Insufficient stock for: {$label}. Required: {$needed} {$mat->unit->value}, available: {$mat->stock_quantity} {$mat->unit->value}",
-                            ])];
+                    if ($validateStock) {
+                        if ($mat->stock_quantity <= 0) {
+                            return ['statusCode' => 400, 'body' => json_encode(['error' => "Insufficient stock for: {$label}"])];
+                        }
+                        if (isset($requiredQuantities[$label])) {
+                            [$reqQty, $fromUnit] = $requiredQuantities[$label];
+                            $needed = self::convertToUnit($reqQty, $fromUnit, $mat->unit);
+                            if ($mat->stock_quantity < $needed) {
+                                return ['statusCode' => 400, 'body' => json_encode([
+                                    'error' => "Insufficient stock for: {$label}. Required: {$needed} {$mat->unit->value}, available: {$mat->stock_quantity} {$mat->unit->value}",
+                                ])];
+                            }
                         }
                     }
                     $foundMaterials[$label] = $mat;
                     return null;
                 }
             }
-            return ['statusCode' => 404, 'body' => json_encode(['error' => "Raw material not registered in inventory: {$label}"])];
+            if ($validateStock) {
+                return ['statusCode' => 404, 'body' => json_encode(['error' => "Raw material not registered in inventory: {$label}"])];
+            }
+            return null;
         };
 
         $checks = [

@@ -142,10 +142,6 @@ return function (array $event) {
                     'sweetener_kg'             => $existing->sweetener_kg,
                 ];
 
-                $requiredQtys = BatchInventoryHelper::buildRequiredQuantities(
-                    $existing->fruit_type->value, $fruitKg, RawMaterialUnit::KG, $calc
-                );
-
                 $result = BatchInventoryHelper::checkInventory(
                     $existing->batch_id,
                     fn($m) => $m->subtype === $existing->fruit_type,
@@ -160,8 +156,9 @@ return function (array $event) {
                     $nutrientSecondary,
                     $body['tool_ids'] ?? [],
                     $calc['water_liters'],
-                    $requiredQtys,
-                    $sweetenerType
+                    [],
+                    $sweetenerType,
+                    false
                 );
 
                 if (isset($result['statusCode'])) {

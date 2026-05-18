@@ -108,6 +108,20 @@ trait SugarCaneWineCalculationsTrait
             $albuminGramsMax = round(5 * $totalL / 100, 2);
         }
 
+        // Agua de dilución por aditivo (en ml)
+        $yeastDilutionWaterMl             = round($yeastGrams * 10, 1);
+        $nutrientPrimaryDilutionWaterMl   = $nutrientPrimaryGrams   !== null ? round($nutrientPrimaryGrams   * 10, 1) : null;
+        $nutrientSecondaryDilutionWaterMl = $nutrientSecondaryGrams !== null ? round($nutrientSecondaryGrams * 10, 1) : null;
+        $sorbateDilutionWaterMlMin        = $sorbateGramsMin    !== null ? round($sorbateGramsMin    * 10, 1) : null;
+        $sorbateDilutionWaterMlMax        = $sorbateGramsMax    !== null ? round($sorbateGramsMax    * 10, 1) : null;
+        $benzoateDilutionWaterMlMin       = $benzoateGramsMin   !== null ? round($benzoateGramsMin   * 10, 1) : null;
+        $benzoateDilutionWaterMlMax       = $benzoateGramsMax   !== null ? round($benzoateGramsMax   * 10, 1) : null;
+        $metabisulfiteDilutionWaterMl     = $metabisulfiteGrams !== null ? round($metabisulfiteGrams * 10, 1) : null;
+        $bentoniteDilutionWaterMlMin      = $bentoniteGramsMin  !== null ? round($bentoniteGramsMin  * 15, 1) : null;
+        $bentoniteDilutionWaterMlMax      = $bentoniteGramsMax  !== null ? round($bentoniteGramsMax  * 15, 1) : null;
+        $albuminDilutionWaterMlMin        = $albuminGramsMin    !== null ? round($albuminGramsMin    * 10, 1) : null;
+        $albuminDilutionWaterMlMax        = $albuminGramsMax    !== null ? round($albuminGramsMax    * 10, 1) : null;
+
         return [
             'sugarcane_brix'           => $sugarcaneBrix,
             'water_liters'             => $waterLiters,
@@ -128,8 +142,20 @@ trait SugarCaneWineCalculationsTrait
             'metabisulfite_grams'      => $metabisulfiteGrams,
             'bentonite_grams_min'      => $bentoniteGramsMin,
             'bentonite_grams_max'      => $bentoniteGramsMax,
-            'albumin_grams_min'        => $albuminGramsMin,
-            'albumin_grams_max'        => $albuminGramsMax,
+            'albumin_grams_min'                     => $albuminGramsMin,
+            'albumin_grams_max'                     => $albuminGramsMax,
+            'yeast_dilution_water_ml'               => $yeastDilutionWaterMl,
+            'nutrient_primary_dilution_water_ml'    => $nutrientPrimaryDilutionWaterMl,
+            'nutrient_secondary_dilution_water_ml'  => $nutrientSecondaryDilutionWaterMl,
+            'sorbate_dilution_water_ml_min'         => $sorbateDilutionWaterMlMin,
+            'sorbate_dilution_water_ml_max'         => $sorbateDilutionWaterMlMax,
+            'benzoate_dilution_water_ml_min'        => $benzoateDilutionWaterMlMin,
+            'benzoate_dilution_water_ml_max'        => $benzoateDilutionWaterMlMax,
+            'metabisulfite_dilution_water_ml'       => $metabisulfiteDilutionWaterMl,
+            'bentonite_dilution_water_ml_min'       => $bentoniteDilutionWaterMlMin,
+            'bentonite_dilution_water_ml_max'       => $bentoniteDilutionWaterMlMax,
+            'albumin_dilution_water_ml_min'         => $albuminDilutionWaterMlMin,
+            'albumin_dilution_water_ml_max'         => $albuminDilutionWaterMlMax,
         ];
     }
 }

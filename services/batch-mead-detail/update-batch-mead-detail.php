@@ -128,10 +128,6 @@ return function (array $event) {
                     'water_liters'             => $existing->water_liters,
                 ];
 
-                $requiredQtys = BatchInventoryHelper::buildRequiredQuantities(
-                    BatchSubtype::HONEY->value, $honeyKg, RawMaterialUnit::KG, $calc
-                );
-
                 $result = BatchInventoryHelper::checkInventory(
                     $existing->batch_id,
                     fn($m) => $m->type === BatchType::MEAD && $m->subtype === BatchSubtype::HONEY,
@@ -146,7 +142,9 @@ return function (array $event) {
                     $nutrientSecondary,
                     $body['tool_ids'] ?? [],
                     $calc['water_liters'],
-                    $requiredQtys
+                    [],
+                    null,
+                    false
                 );
 
                 if (isset($result['statusCode'])) {
