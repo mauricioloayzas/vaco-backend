@@ -7,8 +7,7 @@ helper-get-batch-statuses:
   events:
     - httpApi:
         method: GET
-        path: /helper/batch-statuses
-        authorizer: cognitoAuthorizer
+        path: /public/helper/batch-statuses
 
 helper-get-batch-types:
   handler: services/helper/get-batch-types.php
@@ -19,20 +18,18 @@ helper-get-batch-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/batch-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/batch-types
 
 helper-get-batch-subtypes:
   handler: services/helper/get-batch-subtypes.php
   runtime: php-84
   layers:
     - ${self:custom.vendorLayerArn}
-  description: "Obtiene los tipos de lote disponibles"
+  description: "Obtiene los subtipos de lote disponibles"
   events:
     - httpApi:
         method: GET
-        path: /helper/batch-subtypes
-        authorizer: cognitoAuthorizer
+        path: /public/helper/batch-subtypes
 
 helper-get-metabisulfite-types:
   handler: services/helper/get-metabisulfite-types.php
@@ -43,8 +40,7 @@ helper-get-metabisulfite-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/metabisulfite-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/metabisulfite-types
 
 helper-get-nutrient-types:
   handler: services/helper/get-nutrient-types.php
@@ -55,8 +51,7 @@ helper-get-nutrient-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/nutrient-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/nutrient-types
 
 helper-get-sweetness-profiles:
   handler: services/helper/get-sweetness-profiles.php
@@ -67,8 +62,7 @@ helper-get-sweetness-profiles:
   events:
     - httpApi:
         method: GET
-        path: /helper/sweetness-profiles
-        authorizer: cognitoAuthorizer
+        path: /public/helper/sweetness-profiles
 
 helper-get-yeast-strains:
   handler: services/helper/get-yeast-strains.php
@@ -79,8 +73,7 @@ helper-get-yeast-strains:
   events:
     - httpApi:
         method: GET
-        path: /helper/yeast-strains
-        authorizer: cognitoAuthorizer
+        path: /public/helper/yeast-strains
 
 helper-get-yeast-types:
   handler: services/helper/get-yeast-types.php
@@ -91,8 +84,7 @@ helper-get-yeast-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/yeast-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/yeast-types
 
 helper-get-raw-material-categories:
   handler: services/helper/get-raw-material-categories.php
@@ -103,20 +95,18 @@ helper-get-raw-material-categories:
   events:
     - httpApi:
         method: GET
-        path: /helper/raw-material-categories
-        authorizer: cognitoAuthorizer
+        path: /public/helper/raw-material-categories
 
 helper-get-raw-material-movement-types:
   handler: services/helper/get-raw-material-movement-types.php
   runtime: php-84
   layers:
     - ${self:custom.vendorLayerArn}
-  description: "Obtiene las tipos de movimiento de materia prima disponibles"
+  description: "Obtiene los tipos de movimiento de materia prima disponibles"
   events:
     - httpApi:
         method: GET
-        path: /helper/raw-material-movement-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/raw-material-movement-types
 
 helper-get-raw-material-units:
   handler: services/helper/get-raw-material-units.php
@@ -127,8 +117,7 @@ helper-get-raw-material-units:
   events:
     - httpApi:
         method: GET
-        path: /helper/raw-material-units
-        authorizer: cognitoAuthorizer
+        path: /public/helper/raw-material-units
 
 helper-get-depreciation-methods:
   handler: services/helper/get-depreciation-methods.php
@@ -139,8 +128,7 @@ helper-get-depreciation-methods:
   events:
     - httpApi:
         method: GET
-        path: /helper/depreciation-methods
-        authorizer: cognitoAuthorizer
+        path: /public/helper/depreciation-methods
 
 helper-get-clarifier-types:
   handler: services/helper/get-clarifier-types.php
@@ -151,8 +139,7 @@ helper-get-clarifier-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/clarifier-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/clarifier-types
 
 helper-get-stabilizer-types:
   handler: services/helper/get-stabilizer-types.php
@@ -163,8 +150,7 @@ helper-get-stabilizer-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/stabilizer-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/stabilizer-types
 
 helper-get-fermentation-ph-profiles:
   handler: services/helper/get-fermentation-ph-profiles.php
@@ -175,8 +161,7 @@ helper-get-fermentation-ph-profiles:
   events:
     - httpApi:
         method: GET
-        path: /helper/fermentation-ph-profiles
-        authorizer: cognitoAuthorizer
+        path: /public/helper/fermentation-ph-profiles
 
 helper-get-sweetener-types:
   handler: services/helper/get-sweetener-types.php
@@ -187,5 +172,4 @@ helper-get-sweetener-types:
   events:
     - httpApi:
         method: GET
-        path: /helper/sweetener-types
-        authorizer: cognitoAuthorizer
+        path: /public/helper/sweetener-types

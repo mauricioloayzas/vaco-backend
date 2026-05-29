@@ -137,3 +137,4 @@ functions:
   - ${file(serverless-config/tool.yml)}
   - ${file(serverless-config/batch-production-cost.yml)}
   - ${file(serverless-config/helper.yml)}
+  - ${file(serverless-config/public.yml)}

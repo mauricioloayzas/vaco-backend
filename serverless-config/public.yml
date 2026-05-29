@@ -1,0 +1,10 @@
+public-get-batch:
+  handler: services/public/get-public-batch.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene un lote con sus registros de fermentación de forma pública por slug de perfil"
+  events:
+    - httpApi:
+        method: GET
+        path: /public/profiles/{slug}/batches/{batch_id}
