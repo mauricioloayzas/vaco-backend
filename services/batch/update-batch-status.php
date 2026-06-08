@@ -33,10 +33,19 @@ return function (array $event) {
         ];
     }
 
+    if ($body['status'] === 'finished' && empty($body['process_summary'])) {
+        return [
+            'statusCode' => 400,
+            'body' => json_encode([
+                'error' => 'Missing required field: process_summary when status is finished'
+            ])
+        ];
+    }
+
     try {
 
         $repository = new App\Common\Repositories\BatchRepository();
-        $batch = $repository->updateBatchStatus($profile_id, $id, $body['status']);
+        $batch = $repository->updateBatchStatus($profile_id, $id, $body['status'], $body['process_summary'] ?? null);
 
         if ($batch === null) {
             return [

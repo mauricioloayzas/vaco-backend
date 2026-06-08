@@ -1,3 +1,14 @@
+public-get-profile:
+  handler: services/public/get-public-profile.php
+  runtime: php-84
+  layers:
+    - ${self:custom.vendorLayerArn}
+  description: "Obtiene los datos públicos de un perfil por su url_name"
+  events:
+    - httpApi:
+        method: GET
+        path: /public/profiles/{slug}
+
 public-get-batch:
   handler: services/public/get-public-batch.php
   runtime: php-84

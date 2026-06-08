@@ -183,10 +183,14 @@ class BatchRepository
         return $this->getBatch($profile_id, $id);
     }
 
-    public function updateBatchStatus(string $profile_id, string $id, string $status): ?BatchEntity
+    public function updateBatchStatus(string $profile_id, string $id, string $status, ?string $process_summary = null): ?BatchEntity
     {
         if (BatchStatus::tryFrom($status) === null) {
             throw new \InvalidArgumentException('Invalid status provided.');
+        }
+
+        if ($status === BatchStatus::FINISHED->value && empty($process_summary)) {
+            throw new \InvalidArgumentException('process_summary is required when status is finished.');
         }
 
         $updateExpression = 'SET #status = :status, #updated_at = :updated_at';
@@ -198,6 +202,12 @@ class BatchRepository
             ':status' => $status,
             ':updated_at' => date('c'),
         ];
+
+        if ($process_summary !== null) {
+            $updateExpression .= ', #process_summary = :process_summary';
+            $expressionAttributeNames['#process_summary'] = 'process_summary';
+            $expressionAttributeValues[':process_summary'] = $process_summary;
+        }
 
         $params = [
             'TableName' => $this->tableName,
