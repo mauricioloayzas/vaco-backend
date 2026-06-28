@@ -126,15 +126,17 @@ class BatchRepository
         }
 
         $item = [
-            'id'         => $id,
-            'code'       => $data['code'],
-            'name'       => $data['name'],
-            'profile_id' => $profile_id,
-            'type'       => $data['type'],
-            'subtype'    => $data['subtype'],
-            'status'     => $data['status'] ?? BatchStatus::BEGIN->value,
-            'created_at' => date('c'),
-            'updated_at' => null,
+            'id'              => $id,
+            'code'            => $data['code'],
+            'name'            => $data['name'],
+            'profile_id'      => $profile_id,
+            'type'            => $data['type'],
+            'subtype'         => $data['subtype'],
+            'status'          => $data['status'] ?? BatchStatus::BEGIN->value,
+            'created_at'      => date('c'),
+            'updated_at'      => null,
+            'process_summary' => $data['process_summary'] ?? null,
+            'video_url'       => $data['video_url'] ?? null,
         ];
 
         $this->dbClient->putItem([
