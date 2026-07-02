@@ -51,6 +51,7 @@ batch-update:
   runtime: php-84
   layers:
     - ${self:custom.vendorLayerArn}
+    - ${self:custom.ffmpegLayerArn}
   description: "Actualiza un lote por ID"
   events:
     - httpApi:

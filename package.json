@@ -2,8 +2,9 @@
   "name": "vaco",
   "scripts": {
     "build:layer": "bash scripts/build-layer.sh",
-    "deploy:dev": "bash -c 'set -a && . .env.local && set +a && export STAGE=dev && bash scripts/build-layer.sh && serverless deploy --stage dev'",
-    "deploy:demo": "bash -c 'set -a && . .env.local && set +a && export STAGE=demo && bash scripts/build-layer.sh && serverless deploy --stage demo'",
-    "deploy:prod": "bash -c 'set -a && . .env.prod.local && set +a && export STAGE=prod && bash scripts/build-layer.sh && serverless deploy --stage prod'"
+    "build:ffmpeg-layer": "bash scripts/build-ffmpeg-layer.sh",
+    "deploy:dev": "bash -c 'set -a && . .env.local && set +a && export STAGE=dev && bash scripts/build-layer.sh && [ -f .ffmpeg-layer-arn ] || bash scripts/build-ffmpeg-layer.sh && serverless deploy --stage dev'",
+    "deploy:demo": "bash -c 'set -a && . .env.local && set +a && export STAGE=demo && bash scripts/build-layer.sh && [ -f .ffmpeg-layer-arn ] || bash scripts/build-ffmpeg-layer.sh && serverless deploy --stage demo'",
+    "deploy:prod": "bash -c 'set -a && . .env.prod.local && set +a && export STAGE=prod && bash scripts/build-layer.sh && [ -f .ffmpeg-layer-arn ] || bash scripts/build-ffmpeg-layer.sh && serverless deploy --stage prod'"
   }
 }

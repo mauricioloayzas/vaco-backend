@@ -117,6 +117,7 @@ plugins:
 
 custom:
   vendorLayerArn: ${file(.vendor-layer-arn)}
+  ffmpegLayerArn: ${file(.ffmpeg-layer-arn)}
 
 package:
   patterns:
